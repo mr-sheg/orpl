@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: orpl
-Version: 0.0.4
+Version: 0.1
 Summary: Open Raman Processing Library
 Author: Guillaume Sheehy
 Author-email: guillaume.sheehy@polymtl.ca
@@ -20,10 +20,6 @@ ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for 
 3. Baseline removal
 4. Spectrum analysis (peak finding, ...)
 5. Synthetic spectrum generation (for testing and benchmarking)
-
-## NOT RELEASED YET
-
-Although the source code includes an MIT license, it is not yet released online. Do not distribute. Do not share outside the LRO.
 
 ## Installation
 
@@ -54,8 +50,6 @@ The recommended steps are
 7. Exporting processed spectrum data
 
 Each steps are detailed in its respective jupyter notebook and the complete processing workflow is presented in `demo7_complete_workflow`.
-
-For more detailed explanation, have a look at the [wiki](https://gitlab.com/LROinnovation/ramanTools/-/wikis/home)
 
 ---
 

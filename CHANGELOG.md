@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1] - 2022-06-15
+
+### First open sourced released version!!!
+
 ### Added
 
 - imports statements for every modules in ORPL's `__init__` so you can now `import orpl` instead of needing `from orpl import ...`
