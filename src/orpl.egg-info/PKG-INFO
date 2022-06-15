@@ -1,0 +1,66 @@
+Metadata-Version: 2.1
+Name: orpl
+Version: 0.0.4
+Summary: Open Raman Processing Library
+Author: Guillaume Sheehy
+Author-email: guillaume.sheehy@polymtl.ca
+License: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+
+# ORPL
+
+ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for the processing of Raman spectrum including;
+
+1. System calibration (x-axis and system's response)
+2. Cosmic Ray removal
+3. Baseline removal
+4. Spectrum analysis (peak finding, ...)
+5. Synthetic spectrum generation (for testing and benchmarking)
+
+## NOT RELEASED YET
+
+Although the source code includes an MIT license, it is not yet released online. Do not distribute. Do not share outside the LRO.
+
+## Installation
+
+Until official release (at which point a simple `pip install orpl` should do the trick), you need to download the project and grab the wheel file (example with the 0.0.2 release : `orpl-X.X.X.whl`). To install the library, run
+
+(example for `orpl-0.0.2.whl`)
+
+```
+pip install /PATH/TO/orpl-0.0.2.whl
+```
+
+If you have a virtual environment configured, don't forget to first activate the environment.
+
+You can verify the installation by doing a `pip list`.
+
+## Processing Raman spectra
+
+The following section presents guidelines and recommendations from the the LRO (https://lroinnovation.com/). This process was optimized for spectra acquired on biological tissues or tissue mimicking phantoms.
+
+The recommended steps are
+
+1. Importing and formating raw spectrum data
+2. Cropping spectra
+3. Removal of cosmic rays
+4. Correction for system response
+5. Baseline removal
+6. Normalization
+7. Exporting processed spectrum data
+
+Each steps are detailed in its respective jupyter notebook and the complete processing workflow is presented in `demo7_complete_workflow`.
+
+For more detailed explanation, have a look at the [wiki](https://gitlab.com/LROinnovation/ramanTools/-/wikis/home)
+
+---
+
+### Contributors
+
+- **Guillaume Sheehy** | guillaume.sheehy@polymtl.ca
+- **Frédérick Dallaire**
+- **Fabien Picot**
