@@ -10,17 +10,21 @@ ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for 
 
 ## Installation
 
-Until official release (at which point a simple `pip install orpl` should do the trick), you need to download the project and grab the wheel file (example with the 0.0.2 release : `orpl-X.X.X.whl`). To install the library, run
-
-(example for `orpl-0.0.2.whl`)
+ORPL is hosted and distributed through the python package index (https://pypi.org/project/orplib/) and can be installed with pip.
 
 ```
-pip install /PATH/TO/orpl-0.0.2.whl
+pip install orplib
 ```
 
 If you have a virtual environment configured, don't forget to first activate the environment.
 
 You can verify the installation by doing a `pip list`.
+
+## BubbleFill
+
+Bubbelfill in action
+
+![](documentation/bubblefill.gif)
 
 ## Processing Raman spectra
 
