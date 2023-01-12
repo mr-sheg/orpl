@@ -2,9 +2,9 @@
 
 ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for the processing of Raman spectrum including;
 
-1. System calibration (x-axis and system's response)
+1. System calibration (x-axis and system response)
 2. Cosmic Ray removal
-3. Baseline removal
+3. Baseline removal (autofluorescence)
 4. Spectrum analysis (peak finding, ...)
 5. Synthetic spectrum generation (for testing and benchmarking)
 
@@ -20,29 +20,25 @@ If you have a virtual environment configured, don't forget to first activate the
 
 You can verify the installation by doing a `pip list`.
 
-## BubbleFill
+## Baseline removal
 
-Bubbelfill in action
+### BubbleFill
 
-![](documentation/bubblefill.gif)
+Bubblefill is a morphological processing algorithm designed for the removal of baselines in spectroscopic signal. It was created and optimized specifically to remove autofluorescence baselines in Raman spectra measured on biological samples.
 
-## Processing Raman spectra
+![Bubblefill in action](documentation/bacon_100.gif)
 
-The following section presents guidelines and recommendations from the the LRO (https://lroinnovation.com/). This process was optimized for spectra acquired on biological tissues or tissue mimicking phantoms.
+The tuning parameter of Bubblefill is the size of the smallest bubble allowed to grow. In general, the smallest bubble width should be chosen to be larger than the widest Raman peak present in the signal. Otherwise, the baseline fit will _grow_ inside the peaks and the output Raman signal will have under expressed peaks.
 
-The recommended steps are
+**Note** : Bubbles can become arbitrarily small if they are growing along the leftmost or rightmost edge of the signal.
 
-1. Importing and formating raw spectrum data
-2. Cropping spectra
-3. Removal of cosmic rays
-4. Correction for system response
-5. Baseline removal
-6. Normalization
-7. Exporting processed spectrum data
+![Bubblefill with bubbles that are too small](documentation/bacon_30.gif)
 
-Each steps are detailed in its respective jupyter notebook and the complete processing workflow is presented in `demo7_complete_workflow`.
+Different smallest bubble widths can be specified for different regions of the spectrum. This enables nearly infinite tuninig of the algorithm and can be used to removed peaks that are known artifacts (for instance). In this example, the smallest bubble width for detector pixels 400 to 650 was set to 1 and to 100 for the rest of the x-axis.
 
----
+![Bubblefill with multiple smallest bubble widths](documentation/bacon_multi.gif)
+
+## How to cite this work
 
 ### Contributors
 
