@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `bubblegif` module to create animated gifs of the bubblefill algorithm
+
+### Changed
+
+- Renamed the `ssdeviation()` function to `addi()` in the `metrics` module
+- Updated Readme
+
 ## [0.1] - 2022-06-15
 
 ### First open sourced released version!!!

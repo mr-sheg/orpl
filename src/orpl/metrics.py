@@ -42,14 +42,15 @@ def raman_snr(
     return snr
 
 
-def ssdeviation(raman: np.ndarray) -> float:
+def assi(raman: np.ndarray) -> float:
     """
-    ssdeviation computes the average signed squared deviation of a Raman spectrum to its mean
-    to be used as a general purpose spectrum quality metric/factor.
+    ASSI computes the Average Signed Squared Intensity of a Raman spectrum.
+    The result is bound between -1 and 1 and can be used as a general purpose spectrum
+    quality metric/factor.
 
     Usage
     -----
-    quality = ssdeviation(raman)
+    quality = ASSI(raman)
 
     Parameters
     ----------
@@ -59,7 +60,7 @@ def ssdeviation(raman: np.ndarray) -> float:
     Returns
     -------
     quality : float
-        the quality of the raman spectrum as computed by the signed squared deviation metric.
+        the quality of the raman spectrum as computed by the ASSI metric.
     """
     raman_ = snv(raman)
     deviation_sign = np.sign(raman_)
