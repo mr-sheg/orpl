@@ -14,3 +14,8 @@ from orpl import (
     plot,
     synthetic,
 )
+
+if __name__ == "__main__":
+    from orpl.GUI.orplGUI import launch_gui
+
+    launch_gui()
