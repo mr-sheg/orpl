@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1353</width>
-    <height>752</height>
+    <width>999</width>
+    <height>726</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,9 +24,9 @@
        <attribute name="title">
         <string>File IO</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="6,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="1,6,6">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
@@ -53,13 +53,60 @@
            </layout>
           </item>
           <item>
-           <widget class="QTreeWidget" name="treeWidgetFiles">
-            <column>
-             <property name="text">
-              <string notr="true">1</string>
-             </property>
-            </column>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1,2">
+            <item>
+             <widget class="QTreeView" name="treeViewFiles">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+              <attribute name="headerCascadingSectionResizes">
+               <bool>false</bool>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPlainTextEdit" name="plainTextMetadata">
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="boxDataSelection">
+              <property name="title">
+               <string>Selected Spectrum</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QGroupBox" name="boxDataPlot">
+              <property name="title">
+               <string>Spectra</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="boxXrefPlot">
+              <property name="title">
+               <string>X Reference</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="boxYrefPlot">
+              <property name="title">
+               <string>Y Reference</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -179,8 +226,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>184</width>
-               <height>456</height>
+               <width>112</width>
+               <height>136</height>
               </rect>
              </property>
              <attribute name="label">
@@ -588,7 +635,7 @@
           <item>
            <widget class="QPushButton" name="buttonCopyLog">
             <property name="text">
-             <string>PushButton</string>
+             <string>Copy Log</string>
             </property>
            </widget>
           </item>
