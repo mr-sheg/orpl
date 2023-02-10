@@ -1,9 +1,7 @@
 {
   "editor.formatOnSave": true,
   "python.formatting.provider": "black",
-  "python.sortImports.args": [
-    "--profile=black"
-  ],
+  "python.sortImports.args": ["--profile=black"],
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
   },

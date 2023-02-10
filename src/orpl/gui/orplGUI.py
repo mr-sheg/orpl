@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from time import strftime
+from typing import List
 
 import pyperclip  # module to copy text to clipboard (ctrl + c | ctrl + v)
 import qtmodern.styles
@@ -15,6 +16,7 @@ from PyQt5.QtWidgets import (
 )
 
 from orpl.calibration import autogenx, compute_irf
+from orpl.datatypes import Spectrum
 from orpl.gui import file_io
 from orpl.gui.mplcanvas import PlotWidget
 from orpl.gui.uis.ui_mainWindow import Ui_mainWindow
@@ -81,17 +83,17 @@ class qlogHandler(logging.Handler):
         self.loggerTextEdit.moveCursor(QtGui.QTextCursor.End)
 
 
-class main_window(QMainWindow, Ui_mainWindow):
+class main_window(Ui_mainWindow, QMainWindow):
     def __init__(self):
         super().__init__()
 
         # Internal references
-        self.data_dir = None
-        self.raw_spectra = None
-        self.metadatas = None
+        self.data_dir: str = None
+        self.raw_spectra: List[Spectrum]
         self.processed_spectra = None
-        self.xaxis = None
-        self.irf = None
+        self.xaxis: Spectrum = None
+        self.irf: Spectrum = None
+        self.auto_update_processing: bool = False
         self.file_system_model = QFileSystemModel()
 
         # Plot windows
@@ -138,13 +140,19 @@ class main_window(QMainWindow, Ui_mainWindow):
         # File IO tab
         self.buttonSelectDirectory.clicked.connect(self.select_working_directory)
         self.buttonSelectSpectra.clicked.connect(self.select_spectra)
-        self.treeViewFiles.selectionModel().selectionChanged.connect(self.select_file)
+        self.treeViewFiles.selectionModel().selectionChanged.connect(
+            self.selected_file_changed
+        )
         self.buttonSelectXref.clicked.connect(self.select_xref)
         self.buttonSelectYref.clicked.connect(self.select_yref)
+
         # Processing tab
+        self.buttonUpdate.clicked.connect(self.update_processing)
+        self.spinBoxLeftCrop.valueChanged.connect(self.left_crop_changed)
+        self.spinBoxRightCrop.valueChanged.connect(self.right_crop_changed)
 
         # Log tab
-        self.buttonCopyLog.clicked.connect(self.copyLogButtonPushed)
+        self.buttonCopyLog.clicked.connect(self.copy_log)
 
         logger.info("connected GUI slots")
 
@@ -152,7 +160,7 @@ class main_window(QMainWindow, Ui_mainWindow):
 
     # Tab File IO
 
-    def select_file(self):
+    def selected_file_changed(self):
         files = self.get_selected_files()
         if len(files) == 0:
             return
@@ -161,15 +169,15 @@ class main_window(QMainWindow, Ui_mainWindow):
         lastfile = files[-1]
 
         # Load file
-        data, meta = file_io.load_file(lastfile)
+        spectrum = file_io.load_file(lastfile)
 
         # Update metadata
-        self.plainTextMetadata.setPlainText(meta)
+        self.plainTextMetadata.setPlainText(spectrum.metadata.details)
 
         # Plot data
         ax = self.currentSpectrumPlot.canvas.axes
         ax.clear()
-        ax.plot(data)
+        ax.plot(spectrum.accumulations.T)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
@@ -195,16 +203,20 @@ class main_window(QMainWindow, Ui_mainWindow):
         self.raw_spectra = []
         self.metadatas = []
         for file in self.get_selected_files():
-            data, meta = file_io.load_file(file)
-            self.raw_spectra.append(data)
-            self.metadatas.append(meta)
+            spectrum = file_io.load_file(file)
+            self.raw_spectra.append(spectrum)
             logger.info("Loaded data file - %s", file)
+
+        # Update processing controls
+        spectrum_length = self.raw_spectra[0].nbins
+        self.spinBoxLeftCrop.setValue(0)
+        self.spinBoxRightCrop.setValue
 
         # Update Spectra graph (in File IO tab)
         ax = self.loadedDataPlot.canvas.axes
         ax.clear()
-        for spectrum in self.raw_spectra:
-            ax.plot(spectrum)
+        for s in self.raw_spectra:
+            ax.plot(s.mean_spectrum)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
@@ -214,8 +226,8 @@ class main_window(QMainWindow, Ui_mainWindow):
         # Update Spectra graph (in Processing tab)
         ax = self.rawDataPlot.canvas.axes
         ax.clear()
-        for spectrum in self.raw_spectra:
-            ax.plot(spectrum)
+        for s in self.raw_spectra:
+            ax.plot(s.mean_spectrum)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
@@ -236,22 +248,20 @@ class main_window(QMainWindow, Ui_mainWindow):
             return
 
         # Load X-ref
-        data, _ = file_io.load_file(selected_file[0])
-        if data.ndim > 1:
-            data = data.mean(axis=0)
+        spectrum = file_io.load_file(selected_file[0])
 
         # Compute xaxis from x-ref
         if self.radioButtonTylenol.isChecked():
-            xaxis = autogenx(data, preset="tylenol")
+            xaxis = autogenx(spectrum.mean_spectrum, preset="tylenol")
         elif self.radioButtonNylon.isChecked():
-            xaxis = autogenx(data, preset="nylon")
+            xaxis = autogenx(spectrum.mean_spectrum, preset="nylon")
         self.xaxis = xaxis
 
         # Update X-ref plot
         ax = self.xrefPlot.canvas.axes
         ax.clear()
-        ax.plot(xaxis, data)
-        ax.set_xlabel("Camera pixel [au]")
+        ax.plot(xaxis, spectrum.mean_spectrum)
+        ax.set_xlabel(r"Raman Shifts [cm$^{-1}$]")
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
@@ -271,9 +281,7 @@ class main_window(QMainWindow, Ui_mainWindow):
             return
 
         # Load Y-ref
-        nist, _ = file_io.load_file(selected_file[0])
-        if nist.ndim > 1:
-            nist = nist.mean(axis=0)
+        nist = file_io.load_file(selected_file[0]).mean_spectrum
 
         # Compute IRF from y-ref
         if self.xaxis is None:
@@ -300,9 +308,22 @@ class main_window(QMainWindow, Ui_mainWindow):
         ax.figure.canvas.draw()
         logger.info("Updated Y-ref plot")
 
+    # Tab Processing
+
+    def update_processing(self):
+        logger.info("Updating Processing")
+        self.process_spectra()
+        logger.info("Updating ")
+
+    def left_crop_changed(self):
+        return
+
+    def right_crop_changed(self):
+        return
+
     # Tab Log
 
-    def copyLogButtonPushed(self):
+    def copy_log(self):
         pyperclip.copy(self.plainTextLog.toPlainText())
         logger.info("copied log text")
 
@@ -314,11 +335,25 @@ class main_window(QMainWindow, Ui_mainWindow):
         files = [index.model().filePath(index) for index in indexes]
         files = set(files)
         files = [file for file in files if os.path.isfile(file)]  # Remove directory
-        files = [
-            file for file in files if file_io.is_file_supported(file)
-        ]  # keep only supported file types
+        # Remove unsupported files
+        files = [f for f in files if file_io.is_file_supported(f)]
 
         return files
+
+    def process_spectra(self):
+        xaxis = self.xaxis
+        raw_spectra = self.raw_spectra
+        irf = self.irf
+
+        # Truncating
+        left_cutoff = self.spinBoxLeftCrop.value()
+        right_cutoff = self.spinBoxRightCrop.value()
+        print(left_cutoff, right_cutoff)
+        # Removing cosmic rays
+
+        # Removing baselines
+
+        #
 
 
 def launch_gui():

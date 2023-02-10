@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/gsheehy/Storage/Git/orpl/src/orpl/GUI/uis/mainWindow.ui'
+# Form implementation generated from reading ui file '/home/gsheehy/Storage/Git/orpl/src/orpl/gui/uis/mainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
