@@ -30,7 +30,7 @@ def load_file(filepath: str) -> tuple([np.ndarray, str]):
 
 
 if __name__ == "__main__":
-    data, meta = load_file(
+    _, meta = load_file(
         "/home/gsheehy/Desktop/blue silicone 1s 25mw p5314 100 mic slit.sif"
     )
     print(meta)
