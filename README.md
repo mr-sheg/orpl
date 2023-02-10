@@ -40,7 +40,7 @@ Different smallest bubble widths can be specified for different regions of the s
 
 ## How to cite this work
 
-G. Sheehy et al., “Open-sourced Raman spectroscopy data processing package implementing a baseline removal algorithm validated from multiple datasets acquired in human tissue and biofluids” J. Biomed. Opt., article submitted Oct. 2022
+G. Sheehy et al., “Open-sourced Raman spectroscopy data processing package implementing a baseline removal algorithm validated from multiple datasets acquired in human tissue and biofluids” J. Biomed. Opt., article accepted issue to be published soon.
 
 ### Contributors
 
