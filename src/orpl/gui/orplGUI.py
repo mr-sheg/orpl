@@ -4,6 +4,7 @@ import sys
 from time import strftime
 from typing import List
 
+import numpy as np
 import pyperclip  # module to copy text to clipboard (ctrl + c | ctrl + v)
 import qtmodern.styles
 from PyQt5 import QtGui
@@ -16,11 +17,14 @@ from PyQt5.QtWidgets import (
     QStyle,
 )
 
+from orpl.baseline_removal import bubblefill, imodpoly, morph_br
 from orpl.calibration import autogenx, compute_irf
+from orpl.cosmic_ray import crfilter_multi, crfilter_single
 from orpl.datatypes import Spectrum
 from orpl.gui import file_io
 from orpl.gui.mplcanvas import PlotWidget
 from orpl.gui.uis.ui_mainWindow import Ui_mainWindow
+from orpl.normalization import auc, maxband, minmax, snv
 
 # Set-up home directory for ORPL
 HOME_DIR = os.environ["HOME"]
@@ -119,7 +123,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         logger.info("linked Logger with logWidget")
 
     def defaultSetup(self):
-        # File IO
+        # File IO tab
         self.file_system_model.setRootPath("/")
         self.treeViewFiles.setModel(self.file_system_model)
         self.treeViewFiles.setRootIndex(self.file_system_model.index(HOME_DIR))
@@ -130,6 +134,12 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.buttonDropSpectra.setIcon(trash_icon)
         self.buttonDropXref.setIcon(trash_icon)
         self.buttonDropYref.setIcon(trash_icon)
+
+        # Processing tab
+        self.spinBoxMCRRWidth.setValue(3)
+        self.spinBoxMCRRthreshold.setValue(0.1)
+        self.spinBoxSCRRWidth.setValue(3)
+        self.spinBoxSCRRstd.setValue(5)
 
         # Log
         self.labelLogPath.setText(LOG_PATH)
@@ -160,6 +170,24 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.spinBoxLeftCrop.valueChanged.connect(self.left_crop_changed)
         self.spinBoxRightCrop.valueChanged.connect(self.right_crop_changed)
         self.buttonUpdate.clicked.connect(self.process_spectra)
+        self.checkBoxMultiCRR.clicked.connect(self.processing_changed)
+        self.spinBoxMCRRWidth.valueChanged.connect(self.processing_changed)
+        self.spinBoxMCRRthreshold.valueChanged.connect(self.processing_changed)
+        self.checkBoxSingleCRR.clicked.connect(self.processing_changed)
+        self.spinBoxSCRRWidth.valueChanged.connect(self.processing_changed)
+        self.spinBoxSCRRstd.valueChanged.connect(self.processing_changed)
+        self.comboBoxBRAlgorithm.currentTextChanged.connect(self.processing_changed)
+        self.spinBoxPolyOrder.valueChanged.connect(self.processing_changed)
+        self.spinBoxHWS.valueChanged.connect(self.processing_changed)
+        self.spinBoxBubbleWidth.valueChanged.connect(self.processing_changed)
+        self.radioButtonNoNorm.clicked.connect(self.processing_changed)
+        self.radioButtonMinMax.clicked.connect(self.processing_changed)
+        self.radioButtonAUC.clicked.connect(self.processing_changed)
+        self.radioButtonSNV.clicked.connect(self.processing_changed)
+        self.radioButtonMaxBand.clicked.connect(self.processing_changed)
+        self.spinBoxNormBand.valueChanged.connect(self.processing_changed)
+
+        # self.comboBox
 
         # Log tab
         self.buttonCopyLog.clicked.connect(self.copy_log)
@@ -190,6 +218,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.plot(spectrum.accumulations.T)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
+        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         logger.info("Updated currentSpectrum plot")
@@ -225,6 +254,9 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.spinBoxLeftCrop.setValue(0)
         self.spinBoxRightCrop.setMaximum(spectrum_length)
         self.spinBoxRightCrop.setValue(spectrum_length)
+        self.spinBoxBubbleWidth.setMaximum(spectrum_length)
+        self.spinBoxHWS.setMaximum(spectrum_length)
+        self.spinBoxNormBand.setMaximum(spectrum_length)
 
         # Update plots
         self.plot_loaded_data()
@@ -252,6 +284,9 @@ class main_window(Ui_mainWindow, QMainWindow):
         elif self.radioButtonNylon.isChecked():
             xaxis = autogenx(xref.mean_spectrum, preset="nylon")
         self.xaxis = xaxis
+
+        # Update xaxis dependant control
+        self.spinBoxNormBand.setMaximum(max(xaxis))
 
         self.plot_xref(xref)
 
@@ -314,6 +349,7 @@ class main_window(Ui_mainWindow, QMainWindow):
             ax.plot(s.mean_spectrum)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
+        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         logger.info("Updated Spectra plot")
@@ -327,6 +363,7 @@ class main_window(Ui_mainWindow, QMainWindow):
             ax.plot(self.xaxis, xref.mean_spectrum)
         ax.set_xlabel(r"Raman Shifts [cm$^{-1}$]")
         ax.set_ylabel("Intensity [counts]")
+        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         logger.info("Updated X-ref plot")
@@ -343,6 +380,7 @@ class main_window(Ui_mainWindow, QMainWindow):
                 ax.plot(self.xaxis, self.irf)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
+        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         logger.info("Updated Y-ref plot")
@@ -366,6 +404,11 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         self.plot_raw_spectra()
 
+        if self.checkBoxAutoUpdate.isChecked():
+            self.process_spectra()
+
+    def processing_changed(self):
+        logger.info("Processing update - %s - changed", self.sender().objectName())
         if self.checkBoxAutoUpdate.isChecked():
             self.process_spectra()
 
@@ -397,6 +440,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.set_ylim(ylim)
+        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
 
@@ -410,14 +454,62 @@ class main_window(Ui_mainWindow, QMainWindow):
         else:
             spectrum_ = spectrum.accumulations[lbound:rbound, :]
 
+        # CRR filters
+        if self.checkBoxMultiCRR.isChecked():
+            width = self.spinBoxMCRRWidth.value()
+            threshold = self.spinBoxMCRRthreshold.value()
+            if spectrum_.ndim > 1:
+                spectrum_ = crfilter_multi(
+                    spectrum_, width=width, disparity_threshold=threshold
+                )
+        if self.checkBoxSingleCRR.isChecked():
+            width = self.spinBoxSCRRWidth.value()
+            std_factor = self.spinBoxSCRRstd.value()
+            spectrum_ = crfilter_single(spectrum_, width=width, std_factor=std_factor)
+
+        # IRF correction
+        if self.irf is not None:
+            spectrum_ = spectrum_ / self.irf[lbound:rbound]
+
+        # Baseline removal
+        method = self.comboBoxBRAlgorithm.currentText()
+        if method == "BubbleFill":
+            width = self.spinBoxBubbleWidth.value()
+            spectrum_, _ = bubblefill(spectrum_, min_bubble_widths=width)
+        elif method == "IModPoly":
+            poly_order = self.spinBoxPolyOrder.value()
+            spectrum_, _ = imodpoly(spectrum_, poly_order=poly_order)
+        elif method == "MorphBR":
+            hws = self.spinBoxHWS.value()
+            spectrum_, _ = morph_br(spectrum_, hws=hws)
+
+        # Normalization
+        if self.radioButtonMinMax.isChecked():
+            spectrum_ = minmax(spectrum_)
+        elif self.radioButtonAUC.isChecked():
+            spectrum_ = auc(spectrum_)
+        elif self.radioButtonSNV.isChecked():
+            spectrum_ = snv(spectrum_)
+        elif self.radioButtonMaxBand.isChecked():
+            if self.xaxis is not None:
+                band_ix = (
+                    np.argmin((self.xaxis - self.spinBoxNormBand.value()) ** 2) - lbound
+                )
+            else:
+                band_ix = int(self.spinBoxNormBand.value())
+            spectrum_ = maxband(spectrum_, band_ix=band_ix)
+
         return spectrum_
 
     def process_spectra(self):
         logger.info("Processing spectra")
         self.processed_spectra = []
         for s in self.raw_spectra:
-            s_ = self.process_spectrum(s)
-            self.processed_spectra.append(s_)
+            try:
+                s_ = self.process_spectrum(s)
+                self.processed_spectra.append(s_)
+            except Exception:
+                logger.error(Exception)
 
         self.plot_processed_spectra()
 
@@ -439,6 +531,7 @@ class main_window(Ui_mainWindow, QMainWindow):
                 ax.set_xlabel("Camera pixel")
 
         ax.set_ylabel("Intensity [counts]")
+        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
 

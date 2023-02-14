@@ -291,8 +291,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>112</width>
-               <height>136</height>
+               <width>133</width>
+               <height>430</height>
               </rect>
              </property>
              <attribute name="label">
@@ -372,7 +372,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="spinBoxMCRRthreshold"/>
+               <widget class="QDoubleSpinBox" name="spinBoxMCRRthreshold">
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="Line" name="line">
@@ -406,7 +410,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="spinBoxSCRRstd"/>
+               <widget class="QDoubleSpinBox" name="spinBoxSCRRstd">
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+               </widget>
               </item>
               <item>
                <spacer name="verticalSpacer_10">
@@ -429,7 +437,7 @@
                <x>0</x>
                <y>0</y>
                <width>155</width>
-               <height>258</height>
+               <height>423</height>
               </rect>
              </property>
              <attribute name="label">
@@ -437,7 +445,28 @@
              </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
-               <widget class="QComboBox" name="comboBox"/>
+               <widget class="QComboBox" name="comboBoxBRAlgorithm">
+                <item>
+                 <property name="text">
+                  <string>None</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>BubbleFill</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>IModPoly</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>MorphBR</string>
+                 </property>
+                </item>
+               </widget>
               </item>
               <item>
                <widget class="Line" name="line_4">
@@ -454,7 +483,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="spinBoxPolyOrder"/>
+               <widget class="QSpinBox" name="spinBoxPolyOrder">
+                <property name="maximum">
+                 <number>15</number>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="Line" name="line_3">
@@ -471,7 +504,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="spinBoxHWS"/>
+               <widget class="QSpinBox" name="spinBoxHWS">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="Line" name="line_2">
@@ -488,7 +525,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="spinBoxBubbleWidth"/>
+               <widget class="QSpinBox" name="spinBoxBubbleWidth">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+               </widget>
               </item>
               <item>
                <spacer name="verticalSpacer_7">
@@ -510,8 +551,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>129</width>
-               <height>205</height>
+               <width>133</width>
+               <height>430</height>
               </rect>
              </property>
              <attribute name="label">
@@ -519,23 +560,9 @@
              </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
-               <widget class="QRadioButton" name="radioButton">
+               <widget class="QRadioButton" name="radioButtonNoNorm">
                 <property name="text">
-                 <string>MinMax</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="radioButton_3">
-                <property name="text">
-                 <string>AUC</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="radioButton_2">
-                <property name="text">
-                 <string>SNV</string>
+                 <string>None</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -543,7 +570,31 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton_4">
+               <widget class="QRadioButton" name="radioButtonMinMax">
+                <property name="text">
+                 <string>MinMax</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButtonAUC">
+                <property name="text">
+                 <string>AUC</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButtonSNV">
+                <property name="text">
+                 <string>SNV</string>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButtonMaxBand">
                 <property name="text">
                  <string>Max band</string>
                 </property>
@@ -557,7 +608,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+               <widget class="QDoubleSpinBox" name="spinBoxNormBand"/>
               </item>
               <item>
                <spacer name="verticalSpacer_8">
