@@ -157,9 +157,9 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.buttonDropYref.clicked.connect(self.drop_yref)
 
         # Processing tab
-        self.buttonUpdate.clicked.connect(self.update_processing)
         self.spinBoxLeftCrop.valueChanged.connect(self.left_crop_changed)
         self.spinBoxRightCrop.valueChanged.connect(self.right_crop_changed)
+        self.buttonUpdate.clicked.connect(self.process_spectra)
 
         # Log tab
         self.buttonCopyLog.clicked.connect(self.copy_log)
@@ -216,12 +216,15 @@ class main_window(Ui_mainWindow, QMainWindow):
             self.raw_spectra.append(spectrum)
             logger.info("Loaded data file - %s", file)
 
+        if not self.raw_spectra:
+            return
+
         # Update processing controls
         spectrum_length = self.raw_spectra[0].nbins
-        self.spinBoxLeftCrop.setValue(0)
         self.spinBoxLeftCrop.setMaximum(spectrum_length)
-        self.spinBoxRightCrop.setValue(spectrum_length)
+        self.spinBoxLeftCrop.setValue(0)
         self.spinBoxRightCrop.setMaximum(spectrum_length)
+        self.spinBoxRightCrop.setValue(spectrum_length)
 
         # Update plots
         self.plot_loaded_data()
@@ -315,7 +318,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.figure.canvas.draw()
         logger.info("Updated Spectra plot")
 
-    def plot_xref(self, xref):
+    def plot_xref(self, xref: Spectrum):
         logger.info("Plotting (xaxis, xref)")
         # Update X-ref plot
         ax = self.xrefPlot.canvas.axes
@@ -346,29 +349,98 @@ class main_window(Ui_mainWindow, QMainWindow):
 
     # Tab Processing
 
-    def update_processing(self):
-        logger.info("Updating Processing")
-        self.process_spectra()
-        logger.info("Updating ")
-
     def left_crop_changed(self):
-        return
+        logger.info("Left crop changed to %s", self.spinBoxLeftCrop.value())
+
+        self.spinBoxRightCrop.setMinimum(self.spinBoxLeftCrop.value() + 10)
+
+        self.plot_raw_spectra()
+
+        if self.checkBoxAutoUpdate.isChecked():
+            self.process_spectra()
 
     def right_crop_changed(self):
-        return
+        logger.info("Right crop chaneg to %s", self.spinBoxRightCrop.value())
+
+        self.spinBoxLeftCrop.setMaximum(self.spinBoxRightCrop.value() - 10)
+
+        self.plot_raw_spectra()
+
+        if self.checkBoxAutoUpdate.isChecked():
+            self.process_spectra()
 
     def plot_raw_spectra(self):
+        logger.info("Updating Raw Spectra plot")
         # Update Spectra graph (in Processing tab)
         ax = self.rawDataPlot.canvas.axes
         ax.clear()
 
+        # Plot raw spectra
         for s in self.raw_spectra:
             ax.plot(s.mean_spectrum)
+
+        # Plot crop lines
+        lc = self.spinBoxLeftCrop.value()
+        rc = self.spinBoxRightCrop.value()
+        ylim = ax.get_ylim()
+        ax.plot(
+            [lc, lc],
+            ylim,
+            color="tab:red",
+        )
+        ax.plot(
+            [rc, rc],
+            ylim,
+            color="tab:red",
+        )
+
         ax.set_xlabel("Camera pixel [au]")
+        ax.set_ylabel("Intensity [counts]")
+        ax.set_ylim(ylim)
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
+
+    def process_spectrum(self, spectrum: Spectrum) -> Spectrum:
+        lbound = self.spinBoxLeftCrop.value()
+        rbound = self.spinBoxRightCrop.value()
+
+        # Crop spectrum
+        if spectrum.naccumulations == 1:
+            spectrum_ = spectrum.accumulations[lbound:rbound]
+        else:
+            spectrum_ = spectrum.accumulations[lbound:rbound, :]
+
+        return spectrum_
+
+    def process_spectra(self):
+        logger.info("Processing spectra")
+        self.processed_spectra = []
+        for s in self.raw_spectra:
+            s_ = self.process_spectrum(s)
+            self.processed_spectra.append(s_)
+
+        self.plot_processed_spectra()
+
+    def plot_processed_spectra(self):
+        logger.info("Plot processed spectra plot")
+
+        ax = self.processedDataPlot.canvas.axes
+        ax.clear()
+
+        for s in self.processed_spectra:
+            if self.xaxis is not None:
+                lbound = self.spinBoxLeftCrop.value()
+                rbound = self.spinBoxRightCrop.value()
+                xaxis = self.xaxis[lbound:rbound]
+                ax.plot(xaxis, s)
+                ax.set_xlabel(r"Raman shift [cm$^{-1}$]")
+            else:
+                ax.plot(s)
+                ax.set_xlabel("Camera pixel")
+
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
-        logger.info("Updated Raw Spectra plot")
 
     # Tab Log
 
@@ -389,15 +461,6 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         return files
 
-    def process_spectra(self):
-        xaxis = self.xaxis
-        raw_spectra = self.raw_spectra
-        irf = self.irf
-
-        # Truncating
-        left_cutoff = self.spinBoxLeftCrop.value()
-        right_cutoff = self.spinBoxRightCrop.value()
-        print(left_cutoff, right_cutoff)
         # Removing cosmic rays
 
         # Removing baselines
