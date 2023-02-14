@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QFileSystemModel,
     QMainWindow,
+    QStyle,
 )
 
 from orpl.calibration import autogenx, compute_irf
@@ -124,6 +125,12 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.treeViewFiles.setRootIndex(self.file_system_model.index(HOME_DIR))
         self.textEditDataDir.setText(HOME_DIR)
 
+        pixmapi = getattr(QStyle, "SP_TrashIcon")
+        trash_icon = self.style().standardIcon(pixmapi)
+        self.buttonDropSpectra.setIcon(trash_icon)
+        self.buttonDropXref.setIcon(trash_icon)
+        self.buttonDropYref.setIcon(trash_icon)
+
         # Log
         self.labelLogPath.setText(LOG_PATH)
         logger.info("setted default logTab setup")
@@ -139,12 +146,15 @@ class main_window(Ui_mainWindow, QMainWindow):
     def connectSlots(self):
         # File IO tab
         self.buttonSelectDirectory.clicked.connect(self.select_working_directory)
-        self.buttonSelectSpectra.clicked.connect(self.select_spectra)
+        self.buttonSelectSpectra.clicked.connect(self.select_data)
         self.treeViewFiles.selectionModel().selectionChanged.connect(
             self.selected_file_changed
         )
         self.buttonSelectXref.clicked.connect(self.select_xref)
         self.buttonSelectYref.clicked.connect(self.select_yref)
+        self.buttonDropSpectra.clicked.connect(self.drop_data)
+        self.buttonDropXref.clicked.connect(self.drop_xref)
+        self.buttonDropYref.clicked.connect(self.drop_yref)
 
         # Processing tab
         self.buttonUpdate.clicked.connect(self.update_processing)
@@ -198,10 +208,9 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         logger.info("Changed data directory - %s", new_dir)
 
-    def select_spectra(self):
+    def select_data(self):
         # Load selected data
         self.raw_spectra = []
-        self.metadatas = []
         for file in self.get_selected_files():
             spectrum = file_io.load_file(file)
             self.raw_spectra.append(spectrum)
@@ -210,29 +219,13 @@ class main_window(Ui_mainWindow, QMainWindow):
         # Update processing controls
         spectrum_length = self.raw_spectra[0].nbins
         self.spinBoxLeftCrop.setValue(0)
-        self.spinBoxRightCrop.setValue
+        self.spinBoxLeftCrop.setMaximum(spectrum_length)
+        self.spinBoxRightCrop.setValue(spectrum_length)
+        self.spinBoxRightCrop.setMaximum(spectrum_length)
 
-        # Update Spectra graph (in File IO tab)
-        ax = self.loadedDataPlot.canvas.axes
-        ax.clear()
-        for s in self.raw_spectra:
-            ax.plot(s.mean_spectrum)
-        ax.set_xlabel("Camera pixel [au]")
-        ax.set_ylabel("Intensity [counts]")
-        ax.figure.tight_layout()
-        ax.figure.canvas.draw()
-        logger.info("Updated Spectra plot")
-
-        # Update Spectra graph (in Processing tab)
-        ax = self.rawDataPlot.canvas.axes
-        ax.clear()
-        for s in self.raw_spectra:
-            ax.plot(s.mean_spectrum)
-        ax.set_xlabel("Camera pixel [au]")
-        ax.set_ylabel("Intensity [counts]")
-        ax.figure.tight_layout()
-        ax.figure.canvas.draw()
-        logger.info("Updated Raw Spectra plot")
+        # Update plots
+        self.plot_loaded_data()
+        self.plot_raw_spectra()
 
     def select_xref(self):
         selected_file = self.get_selected_files()
@@ -248,24 +241,16 @@ class main_window(Ui_mainWindow, QMainWindow):
             return
 
         # Load X-ref
-        spectrum = file_io.load_file(selected_file[0])
+        xref = file_io.load_file(selected_file[0])
 
         # Compute xaxis from x-ref
         if self.radioButtonTylenol.isChecked():
-            xaxis = autogenx(spectrum.mean_spectrum, preset="tylenol")
+            xaxis = autogenx(xref.mean_spectrum, preset="tylenol")
         elif self.radioButtonNylon.isChecked():
-            xaxis = autogenx(spectrum.mean_spectrum, preset="nylon")
+            xaxis = autogenx(xref.mean_spectrum, preset="nylon")
         self.xaxis = xaxis
 
-        # Update X-ref plot
-        ax = self.xrefPlot.canvas.axes
-        ax.clear()
-        ax.plot(xaxis, spectrum.mean_spectrum)
-        ax.set_xlabel(r"Raman Shifts [cm$^{-1}$]")
-        ax.set_ylabel("Intensity [counts]")
-        ax.figure.tight_layout()
-        ax.figure.canvas.draw()
-        logger.info("Updated X-ref plot")
+        self.plot_xref(xref)
 
     def select_yref(self):
         selected_file = self.get_selected_files()
@@ -295,13 +280,64 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         self.irf = irf
 
+        self.plot_irf()
+
+    def drop_data(self):
+        logger.info("Dropping loaded data")
+        self.raw_spectra = []
+
+        self.plot_raw_spectra()
+        self.plot_loaded_data()
+
+    def drop_xref(self):
+        logger.info("Dropping xref and xaxis")
+        self.xaxis = None
+
+        self.plot_xref(None)
+
+    def drop_yref(self):
+        logger.info("Dropping yref and IRF")
+        self.irf = None
+
+        self.plot_irf()
+
+    def plot_loaded_data(self):
+        logger.info("Plotting loaded data")
+        # Update Spectra graph (in File IO tab)
+        ax = self.loadedDataPlot.canvas.axes
+        ax.clear()
+
+        for s in self.raw_spectra:
+            ax.plot(s.mean_spectrum)
+        ax.set_xlabel("Camera pixel [au]")
+        ax.set_ylabel("Intensity [counts]")
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
+        logger.info("Updated Spectra plot")
+
+    def plot_xref(self, xref):
+        logger.info("Plotting (xaxis, xref)")
+        # Update X-ref plot
+        ax = self.xrefPlot.canvas.axes
+        ax.clear()
+        if self.xaxis is not None:
+            ax.plot(self.xaxis, xref.mean_spectrum)
+        ax.set_xlabel(r"Raman Shifts [cm$^{-1}$]")
+        ax.set_ylabel("Intensity [counts]")
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
+        logger.info("Updated X-ref plot")
+
+    def plot_irf(self):
+        logger.info("Plotting Instrument Response Function")
         # Update Y-ref plot
         ax = self.yrefPlot.canvas.axes
         ax.clear()
-        if self.xaxis is None:
-            ax.plot(self.irf)
-        else:
-            ax.plot(self.xaxis, self.irf)
+        if self.irf is not None:
+            if self.xaxis is not None:
+                ax.plot(self.irf)
+            else:
+                ax.plot(self.xaxis, self.irf)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
@@ -320,6 +356,19 @@ class main_window(Ui_mainWindow, QMainWindow):
 
     def right_crop_changed(self):
         return
+
+    def plot_raw_spectra(self):
+        # Update Spectra graph (in Processing tab)
+        ax = self.rawDataPlot.canvas.axes
+        ax.clear()
+
+        for s in self.raw_spectra:
+            ax.plot(s.mean_spectrum)
+        ax.set_xlabel("Camera pixel [au]")
+        ax.set_ylabel("Intensity [counts]")
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
+        logger.info("Updated Raw Spectra plot")
 
     # Tab Log
 
