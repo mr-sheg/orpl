@@ -278,7 +278,7 @@
        <attribute name="title">
         <string>Processing</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,6">
+       <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="1,4">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
@@ -291,7 +291,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>133</width>
+               <width>187</width>
                <height>430</height>
               </rect>
              </property>
@@ -340,7 +340,7 @@
                <x>0</x>
                <y>0</y>
                <width>194</width>
-               <height>327</height>
+               <height>423</height>
               </rect>
              </property>
              <attribute name="label">
@@ -436,8 +436,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>155</width>
-               <height>423</height>
+               <width>187</width>
+               <height>430</height>
               </rect>
              </property>
              <attribute name="label">
@@ -551,7 +551,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>133</width>
+               <width>187</width>
                <height>430</height>
               </rect>
              </property>
@@ -647,20 +647,42 @@
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="layoutPlots" stretch="4,4">
+         <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
-           <widget class="QGroupBox" name="boxRawSignal">
-            <property name="title">
-             <string>Raw Spectra</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QGroupBox" name="boxRawSignal">
+              <property name="title">
+               <string>Raw Spectra</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="boxIRFCorrection">
+              <property name="title">
+               <string>After System Correction</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QGroupBox" name="boxProcessedSignal">
-            <property name="title">
-             <string>Processed Spectra</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_15">
+            <item>
+             <widget class="QGroupBox" name="boxBaselineFit">
+              <property name="title">
+               <string>Baseline Fits</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="boxProcessedSignal">
+              <property name="title">
+               <string>Raman Spectra</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>

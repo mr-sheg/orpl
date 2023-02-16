@@ -1,12 +1,14 @@
 import logging
 import os
 import sys
+import traceback
 from time import strftime
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import pyperclip  # module to copy text to clipboard (ctrl + c | ctrl + v)
 import qtmodern.styles
+from matplotlib.cm import tab10
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QApplication,
@@ -94,8 +96,10 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         # Internal references
         self.data_dir: str = None
-        self.raw_spectra: List[Spectrum]
-        self.processed_spectra = None
+        self.raw_spectra: List[np.ndarray] = []
+        self.baseline_spectra: List[np.ndarray] = []
+        self.irf_corrections: List[np.ndarray] = []
+        self.raman_spectra = None
         self.xaxis: Spectrum = None
         self.irf: Spectrum = None
         self.auto_update_processing: bool = False
@@ -108,6 +112,8 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.yrefPlot = PlotWidget()
         self.rawDataPlot = PlotWidget()
         self.processedDataPlot = PlotWidget()
+        self.baselineFitPlot = PlotWidget()
+        self.irfCorrectionPlot = PlotWidget()
 
         # Window Setup
         self.setupUi(self)
@@ -140,6 +146,11 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.spinBoxMCRRthreshold.setValue(0.1)
         self.spinBoxSCRRWidth.setValue(3)
         self.spinBoxSCRRstd.setValue(5)
+        self.spinBoxPolyOrder.setValue(6)
+        self.spinBoxHWS.setMaximum(1024)
+        self.spinBoxHWS.setValue(100)
+        self.spinBoxBubbleWidth.setMaximum(1024)
+        self.spinBoxBubbleWidth.setValue(200)
 
         # Log
         self.labelLogPath.setText(LOG_PATH)
@@ -152,6 +163,8 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.boxYrefPlot.setLayout(self.yrefPlot.createLayout())
         self.boxRawSignal.setLayout(self.rawDataPlot.createLayout())
         self.boxProcessedSignal.setLayout(self.processedDataPlot.createLayout())
+        self.boxBaselineFit.setLayout(self.baselineFitPlot.createLayout())
+        self.boxIRFCorrection.setLayout(self.irfCorrectionPlot.createLayout())
 
     def connectSlots(self):
         # File IO tab
@@ -199,6 +212,7 @@ class main_window(Ui_mainWindow, QMainWindow):
     # Tab File IO
 
     def selected_file_changed(self):
+        logger.info("Updating currentSpectrum plot")
         files = self.get_selected_files()
         if len(files) == 0:
             return
@@ -218,10 +232,9 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.plot(spectrum.accumulations.T)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
-        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
-        logger.info("Updated currentSpectrum plot")
+        self.currentSpectrumPlot.toolbar.update()
 
     def select_working_directory(self):
         options = QFileDialog.Options()
@@ -349,10 +362,9 @@ class main_window(Ui_mainWindow, QMainWindow):
             ax.plot(s.mean_spectrum)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
-        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
-        logger.info("Updated Spectra plot")
+        self.loadedDataPlot.toolbar.update()
 
     def plot_xref(self, xref: Spectrum):
         logger.info("Plotting (xaxis, xref)")
@@ -363,10 +375,9 @@ class main_window(Ui_mainWindow, QMainWindow):
             ax.plot(self.xaxis, xref.mean_spectrum)
         ax.set_xlabel(r"Raman Shifts [cm$^{-1}$]")
         ax.set_ylabel("Intensity [counts]")
-        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
-        logger.info("Updated X-ref plot")
+        self.xrefPlot.toolbar.update()
 
     def plot_irf(self):
         logger.info("Plotting Instrument Response Function")
@@ -374,16 +385,15 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax = self.yrefPlot.canvas.axes
         ax.clear()
         if self.irf is not None:
-            if self.xaxis is not None:
+            if self.xaxis is None:
                 ax.plot(self.irf)
             else:
                 ax.plot(self.xaxis, self.irf)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
-        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
-        logger.info("Updated Y-ref plot")
+        self.yrefPlot.toolbar.update()
 
     # Tab Processing
 
@@ -440,11 +450,11 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.set_ylim(ylim)
-        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
+        self.rawDataPlot.toolbar.update()
 
-    def process_spectrum(self, spectrum: Spectrum) -> Spectrum:
+    def process_spectrum(self, spectrum: Spectrum) -> Tuple[np.ndarray, np.ndarray]:
         lbound = self.spinBoxLeftCrop.value()
         rbound = self.spinBoxRightCrop.value()
 
@@ -470,26 +480,30 @@ class main_window(Ui_mainWindow, QMainWindow):
         # IRF correction
         if self.irf is not None:
             spectrum_ = spectrum_ / self.irf[lbound:rbound]
+        irf_correction = spectrum_
 
         # Baseline removal
         method = self.comboBoxBRAlgorithm.currentText()
         if method == "BubbleFill":
             width = self.spinBoxBubbleWidth.value()
-            spectrum_, _ = bubblefill(spectrum_, min_bubble_widths=width)
+            raman, baseline = bubblefill(spectrum_, min_bubble_widths=width)
         elif method == "IModPoly":
             poly_order = self.spinBoxPolyOrder.value()
-            spectrum_, _ = imodpoly(spectrum_, poly_order=poly_order)
+            raman, baseline = imodpoly(spectrum_, poly_order=poly_order)
         elif method == "MorphBR":
             hws = self.spinBoxHWS.value()
-            spectrum_, _ = morph_br(spectrum_, hws=hws)
+            raman, baseline = morph_br(spectrum_, hws=hws)
+        else:
+            raman = spectrum_
+            baseline = np.zeros(raman.shape)
 
         # Normalization
         if self.radioButtonMinMax.isChecked():
-            spectrum_ = minmax(spectrum_)
+            raman = minmax(raman)
         elif self.radioButtonAUC.isChecked():
-            spectrum_ = auc(spectrum_)
+            raman = auc(raman)
         elif self.radioButtonSNV.isChecked():
-            spectrum_ = snv(spectrum_)
+            raman = snv(raman)
         elif self.radioButtonMaxBand.isChecked():
             if self.xaxis is not None:
                 band_ix = (
@@ -497,43 +511,90 @@ class main_window(Ui_mainWindow, QMainWindow):
                 )
             else:
                 band_ix = int(self.spinBoxNormBand.value())
-            spectrum_ = maxband(spectrum_, band_ix=band_ix)
+            raman = maxband(raman, band_ix=band_ix)
 
-        return spectrum_
+        return raman, baseline, irf_correction
 
     def process_spectra(self):
         logger.info("Processing spectra")
-        self.processed_spectra = []
+        self.raman_spectra = []
+        self.baseline_spectra = []
+        self.irf_corrections = []
         for s in self.raw_spectra:
             try:
-                s_ = self.process_spectrum(s)
-                self.processed_spectra.append(s_)
+                raman, baseline, irf_correction = self.process_spectrum(s)
+                self.raman_spectra.append(raman)
+                self.baseline_spectra.append(baseline)
+                self.irf_corrections.append(irf_correction)
             except Exception:
-                logger.error(Exception)
+                logger.error(traceback.format_exc())
 
+        self.plot_irf_corrections()
+        self.plot_baseline_fit()
         self.plot_processed_spectra()
 
     def plot_processed_spectra(self):
-        logger.info("Plot processed spectra plot")
+        logger.info("Plotting processed spectra")
 
         ax = self.processedDataPlot.canvas.axes
         ax.clear()
 
-        for s in self.processed_spectra:
+        for raman in self.raman_spectra:
             if self.xaxis is not None:
                 lbound = self.spinBoxLeftCrop.value()
                 rbound = self.spinBoxRightCrop.value()
                 xaxis = self.xaxis[lbound:rbound]
-                ax.plot(xaxis, s)
+                ax.plot(xaxis, raman)
                 ax.set_xlabel(r"Raman shift [cm$^{-1}$]")
             else:
-                ax.plot(s)
+                ax.plot(raman)
                 ax.set_xlabel("Camera pixel")
 
         ax.set_ylabel("Intensity [counts]")
-        ax.figure.canvas.draw()
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
+        self.processedDataPlot.toolbar.update()
+
+    def plot_baseline_fit(self):
+        logger.info("Plotting baseline fits")
+
+        ax = self.baselineFitPlot.canvas.axes
+        ax.clear()
+
+        for i, (s_before_br, baseline) in enumerate(
+            zip(self.irf_corrections, self.baseline_spectra)
+        ):
+            c = tab10(i % 10)
+            lbound = self.spinBoxLeftCrop.value()
+            rbound = self.spinBoxRightCrop.value()
+            if self.xaxis is not None:
+                xaxis = self.xaxis[lbound:rbound]
+                ax.plot(xaxis, s_before_br, alpha=0.75, color=c)
+                ax.plot(xaxis, baseline, linewidth=1, color=c)
+                ax.set_xlabel(r"Raman shift [cm$^{-1}$]")
+            else:
+                ax.plot(s_before_br, alpha=0.75, color=c)
+                ax.plot(baseline, linewidth=1, color=c)
+                ax.set_xlabel("Camera pixel")
+
+        ax.set_ylabel("Intensity [counts]")
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
+        self.baselineFitPlot.toolbar.update()
+
+    def plot_irf_corrections(self):
+        logger.info("Plotting spectra after irf corrections")
+
+        ax = self.irfCorrectionPlot.canvas.axes
+        ax.clear()
+
+        for irf_correction in self.irf_corrections:
+            ax.plot(irf_correction)
+
+        ax.set_ylabel("Intensity [counts]")
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
+        self.irfCorrectionPlot.toolbar.update()
 
     # Tab Log
 

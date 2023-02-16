@@ -4,9 +4,10 @@ Baseline Removal
 
 Provides Raman spectrum baseline removal tools.
 """
+from typing import Tuple
 
-from numba import njit
 import numpy as np
+from numba import njit
 from scipy.signal import savgol_filter
 
 # imodpoly
@@ -18,7 +19,7 @@ def imodpoly(
     precision: float = 0.005,
     max_iter: int = 1000,
     imod: bool = True,
-) -> (np.ndarray, np.ndarray):
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     imodpoly splits a spectrum into it's raman and baseline components.
     Based on the IModPoly (or ModPoly if using imod=False) algorithm.
@@ -101,7 +102,7 @@ def imodpoly(
 # Morphological transformations
 
 
-@njit()
+@njit(cache=True)
 def erosion(signal: list, hws: list) -> list:
     """
     erosion computes the morphological erosion of a singal using
@@ -135,7 +136,7 @@ def erosion(signal: list, hws: list) -> list:
     return eroded_f
 
 
-@njit()
+@njit(cache=True)
 def dilation(signal: list, hws: list) -> list:
     """
     dilation computes the morphological dilation of a signal using
@@ -170,7 +171,7 @@ def dilation(signal: list, hws: list) -> list:
     return diladed_f
 
 
-@njit()
+@njit(cache=True)
 def opening(signal: list, hws: list) -> list:
     """
     opening computes the morphological opening of a signal using
@@ -203,7 +204,7 @@ def opening(signal: list, hws: list) -> list:
     return opened_f
 
 
-@njit()
+@njit(cache=True)
 def bopening(signal: list, hws: list) -> list:
     """
     bopening computes the better opening (see reference) of a signal using
@@ -294,8 +295,10 @@ def morph_br(spectrum: np.ndarray, hws: int) -> np.ndarray:
 # Bubblefill
 
 
-@njit()
-def grow_bubble(spectrum: np.ndarray, alignment: str = "center") -> (np.ndarray, int):
+@njit(cache=True)
+def grow_bubble(
+    spectrum: np.ndarray, alignment: str = "center"
+) -> Tuple[np.ndarray, int]:
     """
     grow_bubble grows a bubble until it touches a spectrum.
 
@@ -353,7 +356,7 @@ def grow_bubble(spectrum: np.ndarray, alignment: str = "center") -> (np.ndarray,
     return bubble, touching_point
 
 
-@njit()
+@njit(cache=True)
 def keep_largest(baseline: np.ndarray, bubble: np.ndarray) -> np.ndarray:
     """
     keep_largest selectively updates a baseline region with a bubble, depending
@@ -466,7 +469,7 @@ def bubbleloop(
 
 def bubblefill(
     spectrum: np.ndarray, min_bubble_widths: list = 50, fit_order: int = 1
-) -> (np.ndarray, np.ndarray):
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     bubblefill splits a spectrum into it's raman and baseline components.
 
@@ -525,8 +528,12 @@ def bubblefill(
     baseline = baseline * scale + poly_fit + smin
 
     # Final smoothing of baseline (only if bubblewidth is not a list!!!)
-    if isinstance(min_bubble_widths, int):
-        baseline = savgol_filter(baseline, 2 * (min_bubble_widths // 4) + 1, 3)
+    if not isinstance(min_bubble_widths, int):
+        filter_width = max(min(min_bubble_widths), 10)
+    else:
+        filter_width = max(min_bubble_widths, 10)
+    # print(filter_width)
+    baseline = savgol_filter(baseline, int(2 * (filter_width // 4) + 3), 3)
 
     raman = spectrum - baseline
 
