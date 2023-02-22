@@ -20,6 +20,20 @@ If you have a virtual environment configured, don't forget to first activate the
 
 You can verify the installation by doing a `pip list`.
 
+### Building from source
+
+This is the command you need to run if you want to build the .whl from the source code yourself (make sure you run it from orpl's project root directory):
+
+```
+python -m build
+```
+
+and to update the build on pypi (this is a reminder for me, it wont do anything if you do this),
+
+```
+python -m twine upload --repository pypi dist/*
+```
+
 ## Baseline removal
 
 ### BubbleFill
@@ -40,7 +54,48 @@ Different smallest bubble widths can be specified for different regions of the s
 
 ## How to cite this work
 
-G. Sheehy et al., “Open-sourced Raman spectroscopy data processing package implementing a baseline removal algorithm validated from multiple datasets acquired in human tissue and biofluids” J. Biomed. Opt., article accepted issue to be published soon.
+Guillaume Sheehy, Fabien Picot, Frédérick Dallaire, Katherine Ember, Tien Nguyen, Kevin Petrecca, Dominique Trudel, and Frédéric Leblond "Open-sourced Raman spectroscopy data processing package implementing a baseline removal algorithm validated from multiple datasets acquired in human tissue and biofluids," Journal of Biomedical Optics 28(2), 025002 (21 February 2023). https://doi.org/10.1117/1.JBO.28.2.025002
+
+### BibTex (.bib)
+
+```
+@article{10.1117/1.JBO.28.2.025002,
+author = {Guillaume Sheehy and Fabien Picot and Fr{\'e}d{\'e}rick Dallaire and Katherine Ember and Tien Nguyen and Kevin Petrecca and Dominique Trudel and Fr{\'e}d{\'e}ric Leblond},
+title = {{Open-sourced Raman spectroscopy data processing package implementing a baseline removal algorithm validated from multiple datasets acquired in human tissue and biofluids}},
+volume = {28},
+journal = {Journal of Biomedical Optics},
+number = {2},
+publisher = {SPIE},
+pages = {025002},
+keywords = {Raman spectroscopy, fluorescence, tissue optics, open-sourced software, machine learning, optics, Raman spectroscopy, Data processing, Bubbles, Equipment, Tissues, Biological samples, Raman scattering, Fluorescence, Aluminum, Spectroscopy},
+year = {2023},
+doi = {10.1117/1.JBO.28.2.025002},
+URL = {https://doi.org/10.1117/1.JBO.28.2.025002}
+}
+```
+
+### EndNote (.enw)
+
+```
+%0 Journal Article
+%A Sheehy, Guillaume
+%A Picot, Fabien
+%A Dallaire, Frédérick
+%A Ember, Katherine
+%A Nguyen, Tien
+%A Petrecca, Kevin
+%A Trudel, Dominique
+%A Leblond, Frédéric
+%T Open-sourced Raman spectroscopy data processing package implementing a baseline removal algorithm validated from multiple datasets acquired in human tissue and biofluids
+%V 28
+%J Journal of Biomedical Optics
+%N 2
+%P 025002
+%D 2023
+%U https://doi.org/10.1117/1.JBO.28.2.025002
+%DOI 10.1117/1.JBO.28.2.025002
+%I SPIE
+```
 
 ### Contributors
 
