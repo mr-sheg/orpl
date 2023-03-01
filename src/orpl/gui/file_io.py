@@ -49,6 +49,29 @@ def load_json(json_file: Path) -> Spectrum:
     with open(json_file) as f:
         json_data = json.load(f)
 
+    if isinstance(json_data, list):
+        if len(json_data) > 1:
+            raise TypeError(
+                f"It appears file '{json_file.name}' contains multiple acquisitions. "
+                "Please split it into multiple files using the split_json() function."
+            )
+        else:
+            json_data = json_data[0]
+
+    accumulations = np.stack(json_data["RawSpectra"])
+    background = np.stack(json_data["Background"])
+    details = json.dumps(
+        {k: v for k, v in json_data.items() if k not in ["RawData", "Background"]}
+    )
+    metadata = Metadata(
+        comment=json_data["Comment"],
+        exposure_time=json_data["ExpTime"],
+        source_power=json_data["Power"],
+        details=details,
+    )
+    spectrum = Spectrum(
+        accumulations=accumulations, background=background, metadata=metadata
+    )
     return spectrum
 
 
@@ -85,18 +108,18 @@ def split_json(json_file: Path, new_dir: str = None):
     if not json_path.exists():
         raise FileExistsError(f"{json_path} does not exists.")
 
-    with open(json_path) as file:
+    with open(json_path, encoding="utf8") as file:
         json_data = json.load(file)
 
     if not isinstance(json_data, list):
         raise TypeError("The loaded json does not contain a list.")
 
     for i, data in enumerate(json_data):
-        new_file = new_dir / f"{i}.json"
+        new_file = new_dir / f"{new_dir.stem}_{i}.json"
         with open(new_file, "w", encoding="utf8") as f:
             json.dump(data, f)
 
 
 if __name__ == "__main__":
-    split_json("/home/gsheehy/Desktop/sharpie.json")
-    # print(spectrum)
+    json_data = load_file("/home/gsheehy/Desktop/sharpie.json")
+    print(json_data.nbins)

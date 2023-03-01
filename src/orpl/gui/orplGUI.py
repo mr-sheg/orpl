@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import traceback
+from pathlib import Path
 from time import strftime
 from typing import List, Tuple
 
@@ -221,7 +222,11 @@ class main_window(Ui_mainWindow, QMainWindow):
         lastfile = files[-1]
 
         # Load file
-        spectrum = file_io.load_file(lastfile)
+        try:
+            spectrum = file_io.load_file(lastfile)
+        except Exception:
+            logger.error(traceback.format_exc())
+            return
 
         # Update metadata
         self.plainTextMetadata.setPlainText(spectrum.metadata.details)
@@ -229,7 +234,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         # Plot data
         ax = self.currentSpectrumPlot.canvas.axes
         ax.clear()
-        ax.plot(spectrum.accumulations.T)
+        ax.plot(spectrum.accumulations)
         ax.set_xlabel("Camera pixel [au]")
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
@@ -610,6 +615,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         files = [index.model().filePath(index) for index in indexes]
         files = set(files)
         files = [file for file in files if os.path.isfile(file)]  # Remove directory
+        files = [Path(f) for f in files]
         # Remove unsupported files
         files = [f for f in files if file_io.is_file_supported(f)]
 
