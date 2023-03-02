@@ -20,11 +20,11 @@ from PyQt5.QtWidgets import (
     QStyle,
 )
 
+from orpl import file_io
 from orpl.baseline_removal import bubblefill, imodpoly, morph_br
 from orpl.calibration import autogenx, compute_irf
 from orpl.cosmic_ray import crfilter_multi, crfilter_single
 from orpl.datatypes import Spectrum
-from orpl.gui import file_io
 from orpl.gui.mplcanvas import PlotWidget
 from orpl.gui.uis.ui_mainWindow import Ui_mainWindow
 from orpl.normalization import auc, maxband, minmax, snv
@@ -259,9 +259,12 @@ class main_window(Ui_mainWindow, QMainWindow):
         # Load selected data
         self.raw_spectra = []
         for file in self.get_selected_files():
-            spectrum = file_io.load_file(file)
-            self.raw_spectra.append(spectrum)
-            logger.info("Loaded data file - %s", file)
+            try:
+                spectrum = file_io.load_file(file)
+                self.raw_spectra.append(spectrum)
+                logger.info("Loaded data file - %s", file)
+            except Exception:
+                logger.error(traceback.format_exc())
 
         if not self.raw_spectra:
             return
@@ -459,15 +462,22 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.figure.canvas.draw()
         self.rawDataPlot.toolbar.update()
 
-    def process_spectrum(self, spectrum: Spectrum) -> Tuple[np.ndarray, np.ndarray]:
+    def process_spectrum(
+        self, spectrum: Spectrum
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+        spectrum_ = spectrum.accumulations
+        background_ = spectrum.background
+
+        # Tuncation
         lbound = self.spinBoxLeftCrop.value()
         rbound = self.spinBoxRightCrop.value()
-
-        # Crop spectrum
         if spectrum.naccumulations == 1:
-            spectrum_ = spectrum.accumulations[lbound:rbound]
+            spectrum_ = spectrum_[lbound:rbound]
         else:
-            spectrum_ = spectrum.accumulations[lbound:rbound, :]
+            spectrum_ = spectrum_[lbound:rbound, :]
+        if background_ is not None:
+            background_ = background_[lbound:rbound]
 
         # CRR filters
         if self.checkBoxMultiCRR.isChecked():
@@ -481,6 +491,18 @@ class main_window(Ui_mainWindow, QMainWindow):
             width = self.spinBoxSCRRWidth.value()
             std_factor = self.spinBoxSCRRstd.value()
             spectrum_ = crfilter_single(spectrum_, width=width, std_factor=std_factor)
+
+        # Background removal
+        if background_ is not None:
+            background_ = crfilter_single(background_)
+            if background_.ndim != spectrum_.ndim:
+                spectrum_ = spectrum_ - np.expand_dims(background_, axis=1)
+            else:
+                spectrum_ = spectrum_ - background_
+
+        # Combining accumulations
+        if spectrum.naccumulations > 1:
+            spectrum_ = spectrum_.mean(axis=1)
 
         # IRF correction
         if self.irf is not None:
@@ -612,20 +634,14 @@ class main_window(Ui_mainWindow, QMainWindow):
     def get_selected_files(self) -> list:
         # Get files from selection
         indexes = self.treeViewFiles.selectedIndexes()
-        files = [index.model().filePath(index) for index in indexes]
-        files = set(files)
-        files = [file for file in files if os.path.isfile(file)]  # Remove directory
-        files = [Path(f) for f in files]
+        file_names = [index.model().filePath(index) for index in indexes]
+        file_names = set(file_names)
+        file_paths = [Path(f) for f in file_names]
+
         # Remove unsupported files
-        files = [f for f in files if file_io.is_file_supported(f)]
+        file_paths = [f for f in file_paths if file_io.is_file_supported(f)]
 
-        return files
-
-        # Removing cosmic rays
-
-        # Removing baselines
-
-        #
+        return file_paths
 
 
 def launch_gui():

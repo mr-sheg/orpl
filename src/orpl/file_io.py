@@ -121,5 +121,9 @@ def split_json(json_file: Path, new_dir: str = None):
 
 
 if __name__ == "__main__":
-    json_data = load_file("/home/gsheehy/Desktop/sharpie.json")
+    json_data = load_file("/home/gsheehy/Desktop/tylenol.json")
     print(json_data.nbins)
+
+    p = Path("/home/gsheehy/Desktop/tylenol.json")
+    for f in p.glob("**/*"):
+        print(f)
