@@ -32,12 +32,18 @@ def load_file(file_name: str) -> Spectrum:
 def load_sif(sif_file: Path) -> Spectrum:
     data_array, meta_dict = sif_parser.np_open(sif_file)
     data_array = np.squeeze(data_array)
-    meta_str = pd.DataFrame([dict(meta_dict)]).iloc[0].to_json(indent=2)
+
+    # cleaning up string metadata
+    for k, v in meta_dict.items():
+        if isinstance(v, bytes):
+            meta_dict[k] = v.decode()
+        if isinstance(v, str):
+            meta_dict[k] = v.strip()
 
     metadata = Metadata(
         source_power=None,
         exposure_time=meta_dict["CycleTime"],
-        details=meta_str,
+        details=dict(meta_dict),
         comment="",
     )
     spectrum = Spectrum(accumulations=data_array, metadata=metadata, background=None)
@@ -45,8 +51,8 @@ def load_sif(sif_file: Path) -> Spectrum:
     return spectrum
 
 
-def load_json(json_file: Path) -> Spectrum:
-    with open(json_file) as f:
+def load_json(json_file: Path, dump_meta_spectra=True) -> Spectrum:
+    with open(json_file, encoding="utf8") as f:
         json_data = json.load(f)
 
     if isinstance(json_data, list):
@@ -60,9 +66,12 @@ def load_json(json_file: Path) -> Spectrum:
 
     accumulations = np.stack(json_data["RawSpectra"])
     background = np.stack(json_data["Background"])
-    details = json.dumps(
-        {k: v for k, v in json_data.items() if k not in ["RawData", "Background"]}
-    )
+    details = {
+        k: v
+        for k, v in json_data.items()
+        if k not in ["RawSpectra", "Background", "aec", "asnr"]
+    }
+
     metadata = Metadata(
         comment=json_data["Comment"],
         exposure_time=json_data["ExpTime"],
@@ -120,10 +129,15 @@ def split_json(json_file: Path, new_dir: str = None):
             json.dump(data, f)
 
 
-if __name__ == "__main__":
-    json_data = load_file("/home/gsheehy/Desktop/tylenol.json")
-    print(json_data.nbins)
+class SDF:
+    pass
 
-    p = Path("/home/gsheehy/Desktop/tylenol.json")
-    for f in p.glob("**/*"):
-        print(f)
+
+class RDF:
+    pass
+
+
+if __name__ == "__main__":
+    p = Path.home() / "Desktop" / "blue silicone 1s 25mw p5314 100 mic slit.sif"
+    data = load_sif(p)
+    print(data.metadata.details)

@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QStyle,
 )
+from ruamel import yaml
 
 from orpl import file_io
 from orpl.baseline_removal import bubblefill, imodpoly, morph_br
@@ -229,7 +230,8 @@ class main_window(Ui_mainWindow, QMainWindow):
             return
 
         # Update metadata
-        self.plainTextMetadata.setPlainText(spectrum.metadata.details)
+        detail_str = yaml.dump(spectrum.metadata.details, Dumper=yaml.RoundTripDumper)
+        self.plainTextMetadata.setPlainText(detail_str)
 
         # Plot data
         ax = self.currentSpectrumPlot.canvas.axes

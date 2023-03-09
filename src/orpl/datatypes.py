@@ -5,9 +5,10 @@ from numpy import ndarray
 
 @dataclass(frozen=True)
 class Metadata:
+    # timestamp: int  # epoch [s]
     exposure_time: float  # [ms]
     source_power: float  # [mw]
-    details: str
+    details: dict
     comment: str
 
 
