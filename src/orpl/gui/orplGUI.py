@@ -581,7 +581,11 @@ class main_window(Ui_mainWindow, QMainWindow):
                 ax.plot(raman)
                 ax.set_xlabel("Camera pixel")
 
-        ax.set_ylabel("Intensity [counts]")
+        if self.radioButtonNoNorm.isChecked():
+            ax.set_ylabel("Intensity [counts]")
+        else:
+            ax.set_ylabel("Normalized Intensity [au]")
+
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         self.processedDataPlot.toolbar.update()
@@ -623,6 +627,7 @@ class main_window(Ui_mainWindow, QMainWindow):
             ax.plot(irf_correction)
 
         ax.set_ylabel("Intensity [counts]")
+        ax.set_xlabel("Camera pixel [au]")
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         self.irfCorrectionPlot.toolbar.update()
