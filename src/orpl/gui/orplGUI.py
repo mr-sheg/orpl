@@ -249,12 +249,13 @@ class main_window(Ui_mainWindow, QMainWindow):
     def select_working_directory(self):
         options = QFileDialog.Options()
         new_dir = QFileDialog.getExistingDirectory(
-            self, options=options, directory=HOME_DIR
+            self, options=options, directory=self.textEditDataDir.text()
         )
 
-        self.treeViewFiles.setRootIndex(self.file_system_model.index(new_dir))
-        self.textEditDataDir.setText(new_dir)
-        self.textEditExportDir.setText(new_dir)
+        if new_dir:
+            self.treeViewFiles.setRootIndex(self.file_system_model.index(new_dir))
+            self.textEditDataDir.setText(new_dir)
+            self.textEditExportDir.setText(new_dir)
 
         logger.info("Changed data directory - %s", new_dir)
 
@@ -631,10 +632,11 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         options = QFileDialog.Options()
         new_dir = QFileDialog.getExistingDirectory(
-            self, options=options, directory=HOME_DIR
+            self, options=options, directory=self.textEditExportDir.text()
         )
 
-        self.textEditExportDir.setText(new_dir)
+        if new_dir:
+            self.textEditExportDir.setText(new_dir)
 
     def get_processing_metadata(self, spectrum: Spectrum) -> dict:
         metadata = {}
