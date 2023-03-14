@@ -647,6 +647,13 @@ class main_window(Ui_mainWindow, QMainWindow):
         # Spectrum info
         metadata["raw_spectrum_path"] = str(spectrum.metadata.filepath)
 
+        # Units
+        metadata["units"] = {"xaxis": "camera pixel", "yaxis": "counts"}
+        if self.xaxis is not None:
+            metadata["units"]["xaxis"] = "cm-1"
+        if not self.radioButtonNoNorm.isChecked():
+            metadata["units"]["yaxis"] = "au"
+
         # Truncation
         lbound = self.spinBoxLeftCrop.value()
         rbound = self.spinBoxRightCrop.value()
@@ -744,7 +751,11 @@ class main_window(Ui_mainWindow, QMainWindow):
             rdf_path = export_dir / (rdf_name + ".rdf")
 
             # exporting file
-            rdf.save(rdf_path)
+            try:
+                rdf.save(rdf_path)
+            except Exception:
+                logger.error(traceback.format_exc())
+                continue
 
             # Logging
             logger.info(f"Exported - {rdf_path}")
