@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `bubblegif` module to create animated gifs of the bubblefill algorithm
+- ORPL GUI. This is HUGE
+  - you can launch it by running `python -m orpl` in terminal
+- support for import different file types (.sif, .json, .wdf)
+- support for export in .rdf (Raman Data File)
 
 ### Changed
 
