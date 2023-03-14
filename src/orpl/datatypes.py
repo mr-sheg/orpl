@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Type
 
 from numpy import ndarray
 
@@ -6,6 +8,7 @@ from numpy import ndarray
 @dataclass(frozen=True)
 class Metadata:
     # timestamp: int  # epoch [s]
+    filepath: Type[Path]
     exposure_time: float  # [ms]
     source_power: float  # [mw]
     details: dict

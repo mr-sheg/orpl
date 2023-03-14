@@ -4,10 +4,12 @@ file_io modules provide file handling capabilities for the ORPL GUI.
 
 import json
 from pathlib import Path
+from typing import Type
 
 import numpy as np
 import pandas as pd
 import sif_parser
+from ruamel import yaml
 
 from orpl.datatypes import Metadata, Spectrum
 
@@ -41,6 +43,7 @@ def load_sif(sif_file: Path) -> Spectrum:
             meta_dict[k] = v.strip()
 
     metadata = Metadata(
+        filepath=sif_file,
         source_power=None,
         exposure_time=meta_dict["CycleTime"],
         details=dict(meta_dict),
@@ -73,6 +76,7 @@ def load_json(json_file: Path, dump_meta_spectra=True) -> Spectrum:
     }
 
     metadata = Metadata(
+        filepath=json_file,
         comment=json_data["Comment"],
         exposure_time=json_data["ExpTime"],
         source_power=json_data["Power"],
@@ -134,10 +138,42 @@ class SDF:
 
 
 class RDF:
-    pass
+    metadata: Type[Metadata]
+    xaxis: Type[np.ndarray]
+    raman: Type[np.ndarray]
+    baseline: Type[np.ndarray]
+
+    def get_metadata_block(self) -> str:
+        return "###\n" + yaml.dump(self.metadata, Dumper=yaml.RoundTripDumper) + "###\n"
+
+    def get_data_block(self) -> str:
+        data_array = np.stack((self.xaxis, self.baseline, self.raman), axis=1)
+        data_str = ""
+        for line in data_array:
+            data_str += ",".join(map(str, line)) + "\n"
+        return data_str
+
+    def get_column_block(self) -> str:
+        return "xaxis,baseline,raman\n"
+
+    def save(self, filepath: str) -> None:
+        blocks = (
+            self.get_metadata_block(),
+            self.get_column_block(),
+            self.get_data_block(),
+        )
+        with open(filepath, "w", encoding="utf8") as file:
+            for block in blocks:
+                file.write(block)
 
 
 if __name__ == "__main__":
-    p = Path.home() / "Desktop" / "blue silicone 1s 25mw p5314 100 mic slit.sif"
-    data = load_sif(p)
-    print(data.metadata.details)
+    rdf = RDF()
+    rdf.metadata = {"ORPL version": 0}
+    N = 1024
+    rdf.xaxis = np.linspace(0, 2000, N)
+    rdf.raman = np.random.rand(N)
+    rdf.baseline = np.random.rand(N)
+
+    fpath = Path.home() / "Desktop" / "test.rdf"
+    rdf.save(fpath)

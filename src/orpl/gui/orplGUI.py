@@ -21,11 +21,12 @@ from PyQt5.QtWidgets import (
 )
 from ruamel import yaml
 
-from orpl import file_io
+from orpl import ORPL_VERSION, file_io
 from orpl.baseline_removal import bubblefill, imodpoly, morph_br
 from orpl.calibration import autogenx, compute_irf
 from orpl.cosmic_ray import crfilter_multi, crfilter_single
 from orpl.datatypes import Spectrum
+from orpl.file_io import RDF
 from orpl.gui.mplcanvas import PlotWidget
 from orpl.gui.uis.ui_mainWindow import Ui_mainWindow
 from orpl.normalization import auc, maxband, minmax, snv
@@ -97,7 +98,6 @@ class main_window(Ui_mainWindow, QMainWindow):
         super().__init__()
 
         # Internal references
-        self.data_dir: str = None
         self.raw_spectra: List[np.ndarray] = []
         self.baseline_spectra: List[np.ndarray] = []
         self.irf_corrections: List[np.ndarray] = []
@@ -153,6 +153,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.spinBoxHWS.setValue(100)
         self.spinBoxBubbleWidth.setMaximum(1024)
         self.spinBoxBubbleWidth.setValue(200)
+        self.textEditExportDir.setText(HOME_DIR)
 
         # Log
         self.labelLogPath.setText(LOG_PATH)
@@ -201,6 +202,8 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.radioButtonSNV.clicked.connect(self.processing_changed)
         self.radioButtonMaxBand.clicked.connect(self.processing_changed)
         self.spinBoxNormBand.valueChanged.connect(self.processing_changed)
+        self.buttonSelectExportDir.clicked.connect(self.select_export_dir)
+        self.buttonExportData.clicked.connect(self.export_data)
 
         # self.comboBox
 
@@ -249,11 +252,9 @@ class main_window(Ui_mainWindow, QMainWindow):
             self, options=options, directory=HOME_DIR
         )
 
-        if new_dir:
-            self.data_dir = new_dir
-
         self.treeViewFiles.setRootIndex(self.file_system_model.index(new_dir))
         self.textEditDataDir.setText(new_dir)
+        self.textEditExportDir.setText(new_dir)
 
         logger.info("Changed data directory - %s", new_dir)
 
@@ -624,6 +625,127 @@ class main_window(Ui_mainWindow, QMainWindow):
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
         self.irfCorrectionPlot.toolbar.update()
+
+    def select_export_dir(self):
+        logger.info("Selecting new export directory")
+
+        options = QFileDialog.Options()
+        new_dir = QFileDialog.getExistingDirectory(
+            self, options=options, directory=HOME_DIR
+        )
+
+        self.textEditExportDir.setText(new_dir)
+
+    def get_processing_metadata(self, spectrum: Spectrum) -> dict:
+        metadata = {}
+
+        # Software version
+        metadata["software_info"] = {"software": "ORPL GUI", "version": ORPL_VERSION}
+
+        # Spectrum info
+        metadata["raw_spectrum_path"] = str(spectrum.metadata.filepath)
+
+        # Truncation
+        lbound = self.spinBoxLeftCrop.value()
+        rbound = self.spinBoxRightCrop.value()
+        metadata["truncation"] = {"left_bound": lbound, "right_bound": rbound}
+
+        # Cosmic ray removal
+        metadata["cosmic_ray_removal"] = {
+            "single_filter": {"enabled": False},
+            "multi_filter": {"enabled": False},
+        }
+        if self.checkBoxSingleCRR.isChecked():
+            width = self.spinBoxSCRRWidth.value()
+            std_factor = self.spinBoxSCRRstd.value()
+            metadata["cosmic_ray_removal"]["single_filter"]["enabled"] = True
+            metadata["cosmic_ray_removal"]["single_filter"]["width"] = width
+            metadata["cosmic_ray_removal"]["single_filter"]["std_factor"] = std_factor
+        if self.checkBoxMultiCRR.isChecked():
+            width = self.spinBoxMCRRWidth.value()
+            disparity_threshold = self.spinBoxMCRRthreshold.value()
+            metadata["cosmic_ray_removal"]["multi_filter"]["enabled"] = True
+            metadata["cosmic_ray_removal"]["multi_filter"]["width"] = width
+            metadata["cosmic_ray_removal"]["multi_filter"][
+                "disparity_threshold"
+            ] = disparity_threshold
+
+        # Instrument response correction
+        metadata["instrument_response_correction"] = {"enabled": False}
+        if self.irf is not None:
+            metadata["instrument_response_correction"]["enabled"] = True
+            if self.radioButtonNIST.isChecked():
+                metadata["instrument_response_correction"]["method"] = "NIST SRM-2241"
+
+        # Baseline removal
+        method = self.comboBoxBRAlgorithm.currentText()
+        if method == "BubbleFill":
+            width = self.spinBoxBubbleWidth.value()
+            metadata["baseline_removal"] = {
+                "method": "BubbleFill",
+                "min_bubble_width": width,
+            }
+        elif method == "IModPoly":
+            poly_order = self.spinBoxPolyOrder.value()
+            metadata["baseline_removal"] = {
+                "method": "IModPoly",
+                "poly_order": poly_order,
+            }
+        elif method == "MorphBR":
+            poly_order = self.spinBoxPolyOrder.value()
+            metadata["baseline_removal"] = {
+                "method": "IModPoly",
+                "poly_order": poly_order,
+            }
+        else:
+            metadata["baseline_removal"] = {"method": "None"}
+
+        # Normalization
+        if self.radioButtonNoNorm.isChecked():
+            metadata["normalization"] = {"method": "None"}
+        elif self.radioButtonMinMax.isChecked():
+            metadata["normalization"] = {"method": "MinMax"}
+        elif self.radioButtonAUC.isChecked():
+            metadata["normalization"] = {"method": "AUC"}
+        elif self.radioButtonSNV.isChecked():
+            metadata["normalization"] = {"method": "SNV"}
+        elif self.radioButtonMaxBand.isChecked():
+            metadata["normalization"] = {
+                "method": "MaxBand",
+                "band": self.spinBoxNormBand.value(),
+            }
+
+        return metadata
+
+    def export_data(self):
+        logger.info("Exporting data")
+
+        for i, spectrum in enumerate(self.raw_spectra):
+            rdf = RDF()
+            rdf.metadata = self.get_processing_metadata(spectrum)
+
+            # Spectra
+            rdf.raman = self.raman_spectra[i]
+            rdf.baseline = self.baseline_spectra[i]
+
+            # Xaxis
+            lbound = self.spinBoxLeftCrop.value()
+            rbound = self.spinBoxRightCrop.value()
+            if self.xaxis is not None:
+                rdf.xaxis = self.xaxis[lbound:rbound]
+            else:
+                rdf.xaxis = np.arange(lbound, rbound)
+
+            # export file name
+            rdf_name = spectrum.metadata.filepath.stem
+            export_dir = Path(self.textEditExportDir.text())
+            rdf_path = export_dir / (rdf_name + ".rdf")
+
+            # exporting file
+            rdf.save(rdf_path)
+
+            # Logging
+            logger.info(f"Exported - {rdf_path}")
 
     # Tab Log
 
