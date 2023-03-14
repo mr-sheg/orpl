@@ -7,13 +7,13 @@ from pathlib import Path
 from typing import Type
 
 import numpy as np
-import pandas as pd
 import sif_parser
+from renishawWiRE import WDFReader
 from ruamel import yaml
 
 from orpl.datatypes import Metadata, Spectrum
 
-SUPPORTED_EXTENSIONS = [".sif", ".json"]
+SUPPORTED_EXTENSIONS = [".sif", ".json", ".wdf"]
 
 
 def is_file_supported(file_path: Path) -> bool:
@@ -25,7 +25,7 @@ def load_file(file_name: str) -> Spectrum:
     if not is_file_supported(file_path):
         raise TypeError(f"{file_path} is not supported as a spectrum file.")
 
-    load_function = {".sif": load_sif, ".json": load_json}
+    load_function = {".sif": load_sif, ".json": load_json, ".wdf": load_wdf}
     spectrum = load_function[file_path.suffix](file_path)
 
     return spectrum
@@ -133,6 +133,39 @@ def split_json(json_file: Path, new_dir: str = None):
             json.dump(data, f)
 
 
+def load_wdf(wdf_path: Path):
+
+    wdf = WDFReader(wdf_path)
+
+    accumulations = np.flip(wdf.spectra)
+    details = {
+        "software": f"{wdf.application_name} {'.'.join(str(i) for i in wdf.application_version)}",
+        "accumulation_count": wdf.accumulation_count,
+        "laser_length": wdf.laser_length,
+        "measurement_type": str(wdf.measurement_type),
+        "point_per_spectrum": wdf.point_per_spectrum,
+        "scan_type": str(wdf.scan_type),
+        "spectral_unit": str(wdf.spectral_unit),
+        "username": wdf.username,
+        "xlist_length": wdf.xlist_length,
+        "xlist_type": str(wdf.xlist_type),
+        "xlist_unit": str(wdf.xlist_unit),
+        "ylist_length": wdf.ylist_length,
+        "ylist_type": str(wdf.ylist_type),
+        "ylist_unit": str(wdf.ylist_unit),
+    }
+
+    metadata = Metadata(
+        filepath=wdf_path,
+        comment=wdf.title,
+        exposure_time=None,
+        source_power=None,
+        details=details,
+    )
+    spectrum = Spectrum(accumulations=accumulations, background=None, metadata=metadata)
+    return spectrum
+
+
 class SDF:
     pass
 
@@ -168,12 +201,7 @@ class RDF:
 
 
 if __name__ == "__main__":
-    rdf = RDF()
-    rdf.metadata = {"ORPL version": 0}
-    N = 1024
-    rdf.xaxis = np.linspace(0, 2000, N)
-    rdf.raman = np.random.rand(N)
-    rdf.baseline = np.random.rand(N)
+    wdf_file = Path().home() / "Desktop/orpl_testing/nylon_objx5_0.wdf"
+    s = load_file(wdf_file)
 
-    fpath = Path.home() / "Desktop" / "test.rdf"
-    rdf.save(fpath)
+    print(yaml.dump(s.metadata.details, Dumper=yaml.RoundTripDumper))
