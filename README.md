@@ -31,7 +31,7 @@ python -m build
 and to update the build on pypi (this is a reminder for me, it wont do anything if you do this),
 
 ```
-python -m twine upload --repository pypi dist/*
+python -m twine upload --repository pypi --skip-existing dist/*
 ```
 
 ## Baseline removal
