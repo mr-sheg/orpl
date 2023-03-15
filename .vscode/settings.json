@@ -1,11 +1,13 @@
 {
   "editor.formatOnSave": true,
   "python.formatting.provider": "black",
-  "python.sortImports.args": ["--profile=black"],
+  "isort.args": ["--profile=black"],
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
   },
   "python.linting.pylintArgs": [
+    "--generated-members",
+    "from_json,query",
     "--extension-pkg-whitelist=PyQt5",
     "--disable=C0103",
     "--disable=C0114",
