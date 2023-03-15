@@ -1,0 +1,19 @@
+{
+  "editor.formatOnSave": true,
+  "python.formatting.provider": "black",
+  "isort.args": ["--profile=black"],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "python.linting.pylintArgs": [
+    "--generated-members",
+    "from_json,query",
+    "--extension-pkg-whitelist=PyQt5",
+    "--disable=C0103",
+    "--disable=C0114",
+    "--disable=C0115",
+    "--disable=C0116"
+  ],
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true
+}
