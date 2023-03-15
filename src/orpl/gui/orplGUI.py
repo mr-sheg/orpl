@@ -130,6 +130,9 @@ class main_window(Ui_mainWindow, QMainWindow):
         logger.info("linked Logger with logWidget")
 
     def defaultSetup(self):
+        # window setup
+        self.setWindowTitle(f"ORPL GUI - {ORPL_VERSION}")
+
         # File IO tab
         self.file_system_model.setRootPath("/")
         self.treeViewFiles.setModel(self.file_system_model)
