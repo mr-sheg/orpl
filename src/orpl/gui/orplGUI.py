@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 import traceback
 from pathlib import Path
@@ -32,17 +31,17 @@ from orpl.gui.uis.ui_mainWindow import Ui_mainWindow
 from orpl.normalization import auc, maxband, minmax, snv
 
 # Set-up home directory for ORPL
-HOME_DIR = os.environ["HOME"]
-ORPL_DIR = os.path.join(HOME_DIR, "orpl")
-if not os.path.isdir(ORPL_DIR):
-    os.mkdir(ORPL_DIR)
-LOG_DIR = os.path.join(ORPL_DIR, "logs")
-if not os.path.isdir(LOG_DIR):
-    os.mkdir(LOG_DIR)
+HOME_DIR = Path.home()
+ORPL_DIR = HOME_DIR / "orpl"
+if not ORPL_DIR.exists():
+    ORPL_DIR.mkdir()
+LOG_DIR = ORPL_DIR / "logs"
+if not LOG_DIR.exists():
+    LOG_DIR.mkdir()
 
 
 # Logging
-DEV_MODE = True
+DEV_MODE = False
 
 # Creates logger
 LOG_FORMAT = (
@@ -53,9 +52,9 @@ LOG_FORMAT = (
 )
 
 if DEV_MODE:
-    LOG_PATH = os.path.join(LOG_DIR, "dev.log")
+    LOG_PATH = LOG_DIR / "dev.log"
 else:
-    LOG_PATH = os.path.join(LOG_DIR, f"{strftime('%Y_%m_%d_%H_%M_%S')}.log")
+    LOG_PATH = LOG_DIR / f"{strftime('%Y_%m_%d_%H_%M_%S')}.log"
 
 
 logging.basicConfig(
@@ -134,8 +133,8 @@ class main_window(Ui_mainWindow, QMainWindow):
         # File IO tab
         self.file_system_model.setRootPath("/")
         self.treeViewFiles.setModel(self.file_system_model)
-        self.treeViewFiles.setRootIndex(self.file_system_model.index(HOME_DIR))
-        self.textEditDataDir.setText(HOME_DIR)
+        self.treeViewFiles.setRootIndex(self.file_system_model.index(str(HOME_DIR)))
+        self.textEditDataDir.setText(str(HOME_DIR))
 
         pixmapi = getattr(QStyle, "SP_TrashIcon")
         trash_icon = self.style().standardIcon(pixmapi)
@@ -153,10 +152,10 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.spinBoxHWS.setValue(100)
         self.spinBoxBubbleWidth.setMaximum(1024)
         self.spinBoxBubbleWidth.setValue(200)
-        self.textEditExportDir.setText(HOME_DIR)
+        self.textEditExportDir.setText(str(HOME_DIR))
 
         # Log
-        self.labelLogPath.setText(LOG_PATH)
+        self.labelLogPath.setText(str(LOG_PATH))
         logger.info("setted default logTab setup")
 
     def setupPlots(self):
