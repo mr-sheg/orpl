@@ -1,6 +1,20 @@
 # ORPL
 
+ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for the processing of Raman spectrum, including;
+
+1. System calibration (x-axis and system response)
+2. Cosmic Ray removal
+3. Baseline removal (autofluorescence)
+4. Spectrum analysis (peak finding, ...)
+5. Synthetic spectrum generation (for testing and benchmarking)
+
+As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
+
+## Table of content
+
 - [ORPL](#orpl)
+  - [Table of content](#table-of-content)
+  - [ORPL GUI in action](#orpl-gui-in-action)
   - [Installation](#installation)
     - [Already familiar with python and pip?](#already-familiar-with-python-and-pip)
     - [I'm new to python and this 'pip' thing](#im-new-to-python-and-this-pip-thing)
@@ -16,15 +30,9 @@
     - [EndNote (.enw)](#endnote-enw)
     - [Contributors](#contributors)
 
-ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for the processing of Raman spectrum, including;
+## ORPL GUI in action
 
-1. System calibration (x-axis and system response)
-2. Cosmic Ray removal
-3. Baseline removal (autofluorescence)
-4. Spectrum analysis (peak finding, ...)
-5. Synthetic spectrum generation (for testing and benchmarking)
-
-As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
+https://user-images.githubusercontent.com/27356351/225768644-56ebf40a-51d1-44a1-bba3-edb86f8b1fad.mp4
 
 ## Installation
 

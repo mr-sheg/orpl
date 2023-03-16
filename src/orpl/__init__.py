@@ -17,4 +17,4 @@ from orpl import (
     synthetic,
 )
 
-ORPL_VERSION = "1.0.2"
+ORPL_VERSION = "1.0.3"
