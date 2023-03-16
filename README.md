@@ -1,5 +1,21 @@
 # ORPL
 
+- [ORPL](#orpl)
+  - [Installation](#installation)
+    - [Already familiar with python and pip?](#already-familiar-with-python-and-pip)
+    - [I'm new to python and this 'pip' thing](#im-new-to-python-and-this-pip-thing)
+      - [Content of the `orpl GUI.txt` file](#content-of-the-orpl-guitxt-file)
+    - [Updating ORPL to the latest version](#updating-orpl-to-the-latest-version)
+      - [If you have admin rights](#if-you-have-admin-rights)
+      - [If you do not have admin rights](#if-you-do-not-have-admin-rights)
+    - [Building from source](#building-from-source)
+  - [Baseline removal](#baseline-removal)
+    - [BubbleFill](#bubblefill)
+  - [How to cite this work](#how-to-cite-this-work)
+    - [BibTex (.bib)](#bibtex-bib)
+    - [EndNote (.enw)](#endnote-enw)
+    - [Contributors](#contributors)
+
 ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for the processing of Raman spectrum, including;
 
 1. System calibration (x-axis and system response)
@@ -42,7 +58,7 @@ The steps for **Windows** are:
    2. Make sure you check all boxes on the first page.
    3. Use "Customize installation".
    4. Make sure you check EVERYTHING, I mean ALL checkboxes as you keep going through the pages.
-   5. Once the installation is finished, you'll see a last page with "Setup was successful" if it workd. You might see a `Disable path length limit...` option. If so, click it and accept.
+   5. Once the installation is finished, you'll see a last page with "Setup was successful" if it worked. You might see a `Disable path length limit...` option. If so, click it and accept.
    6. Check if **Python** was correctly installed by running `python` in a terminal (see Step 2.2)
    7. Check if **pip** was installed and added to your Path by running `pip` in a new terminal.
       - If you see a long stream of text starting with `Usage: pip <command> [options]`, then you are good!
