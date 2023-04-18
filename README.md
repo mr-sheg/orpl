@@ -15,9 +15,11 @@ As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
 - [ORPL](#orpl)
   - [Table of content](#table-of-content)
   - [ORPL GUI in action](#orpl-gui-in-action)
+  - [Windows requirements](#windows-requirements)
+    - [LLVMLITE Error](#llvmlite-error)
   - [Installation](#installation)
     - [Already familiar with python and pip?](#already-familiar-with-python-and-pip)
-    - [I'm new to python and this 'pip' thing](#im-new-to-python-and-this-pip-thing)
+    - [I'm new to python and this 'pip' thing?](#im-new-to-python-and-this-pip-thing)
       - [Content of the `orpl GUI.txt` file](#content-of-the-orpl-guitxt-file)
     - [Updating ORPL to the latest version](#updating-orpl-to-the-latest-version)
       - [If you have admin rights](#if-you-have-admin-rights)
@@ -34,6 +36,26 @@ As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
 
 https://user-images.githubusercontent.com/27356351/225768644-56ebf40a-51d1-44a1-bba3-edb86f8b1fad.mp4
 
+## Windows requirements
+
+If you are using windows, you need to have a version of the Microsoft Visual C+ Redistributable packages. You can find details about this and the installation file at
+
+https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
+Otherwise here are the download links from that page (they are not obvious so I linked them here):
+
+| Architecture                                         | Link                                             | Notes                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ARM64                                                | https://aka.ms/vs/17/release/vc_redist.arm64.exe | Permalink for latest supported ARM64 version                                                                                                                                                                                                             |
+| X86 (Windows 32 bits)                                | https://aka.ms/vs/17/release/vc_redist.x86.exe   | Permalink for latest supported x86 version                                                                                                                                                                                                               |
+| X64 (Windows 64 bits, **most likely what you need**) | https://aka.ms/vs/17/release/vc_redist.x64.exe   | Permalink for latest supported x64 version. The X64 Redistributable package contains both ARM64 and X64 binaries. This package makes it easy to install required Visual C++ ARM64 binaries when the X64 Redistributable is installed on an ARM64 device. |
+
+### LLVMLITE Error
+
+If you try to run ORPL on windows without this dependency, you will get an OSError that looks like this
+
+![LLVMLITE error](documentation/screenshot_llvmlite_bug.png)
+
 ## Installation
 
 At its core, ORPL is designed to be a processing library to use in your own processing workflow. Nevertheless, I also wrote a GUI to go with it if programming is not your jam. In either case, installation is made through **pip**.
@@ -48,9 +70,11 @@ pip install orplib
 
 Using Anaconda?... dont... Jokes aside, if people ask me about this, I might write a guide for this. Otherwise, use pip.
 
-### I'm new to python and this 'pip' thing
+### I'm new to python and this 'pip' thing?
 
-I made a video going through everything on a clean Windows 11 [VM](https://en.wikipedia.org/wiki/Virtual_machine). Here is the video so you can follow step-by-step. PLEASE, make certain you follow the steps EXACTLY for the python installation. Otherwise, you'll get a bunch of error in your terminal and might get lost.
+First, if you are using windows, please make sure you installed the _Microsoft Visual C++ Redistributable_ as mentioned in the [Windows requirements](#windows-requirements) section. You can install it after python if you want, so it's no problem if you forget ;)
+
+I made a video going through everything on a clean **Windows 11** [VM](https://en.wikipedia.org/wiki/Virtual_machine), the same steps should work as well for **Windows 10**. Here is the video so you can follow step-by-step. PLEASE, make certain you follow the steps EXACTLY for the python installation. Otherwise, you'll get a bunch of error in your terminal and might get lost.
 
 https://user-images.githubusercontent.com/27356351/225757919-e89d59c2-ff3f-4555-bffc-16b11ef3ecde.mp4
 
