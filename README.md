@@ -15,9 +15,8 @@ As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
 - [ORPL](#orpl)
   - [Table of content](#table-of-content)
   - [ORPL GUI in action](#orpl-gui-in-action)
-  - [Windows requirements](#windows-requirements)
-    - [LLVMLITE Error](#llvmlite-error)
   - [Installation](#installation)
+    - [Windows Installation Guide](#windows-installation-guide)
     - [Already familiar with python and pip?](#already-familiar-with-python-and-pip)
     - [I'm new to python and this 'pip' thing?](#im-new-to-python-and-this-pip-thing)
       - [Content of the `orpl GUI.txt` file](#content-of-the-orpl-guitxt-file)
@@ -36,29 +35,13 @@ As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
 
 https://user-images.githubusercontent.com/27356351/225768644-56ebf40a-51d1-44a1-bba3-edb86f8b1fad.mp4
 
-## Windows requirements
-
-If you are using windows, you need to have a version of the Microsoft Visual C+ Redistributable packages. You can find details about this and the installation file at
-
-https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170
-
-Otherwise here are the download links from that page (they are not obvious so I linked them here):
-
-| Architecture                                         | Link                                             | Notes                                                                                                                                                                                                                                                    |
-| ---------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ARM64                                                | https://aka.ms/vs/17/release/vc_redist.arm64.exe | Permalink for latest supported ARM64 version                                                                                                                                                                                                             |
-| X86 (Windows 32 bits)                                | https://aka.ms/vs/17/release/vc_redist.x86.exe   | Permalink for latest supported x86 version                                                                                                                                                                                                               |
-| X64 (Windows 64 bits, **most likely what you need**) | https://aka.ms/vs/17/release/vc_redist.x64.exe   | Permalink for latest supported x64 version. The X64 Redistributable package contains both ARM64 and X64 binaries. This package makes it easy to install required Visual C++ ARM64 binaries when the X64 Redistributable is installed on an ARM64 device. |
-
-### LLVMLITE Error
-
-If you try to run ORPL on windows without this dependency, you will get an OSError that looks like this
-
-![LLVMLITE error](documentation/screenshot_llvmlite_bug.png)
-
 ## Installation
 
 At its core, ORPL is designed to be a processing library to use in your own processing workflow. Nevertheless, I also wrote a GUI to go with it if programming is not your jam. In either case, installation is made through **pip**.
+
+### Windows Installation Guide
+
+I wrote a detailed installation guide for windows complete with screenshots of all the steps, so do not worry if you are a python beginer and have no idea what I'm talking about here. You can access the guide on github ![here]() or download a ![PDF](/documentation/Installing%20ORPL%20-%20Windows.pdf) version.
 
 ### Already familiar with python and pip?
 
