@@ -41,7 +41,7 @@ At its core, ORPL is designed to be a processing library to use in your own proc
 
 ### Windows Installation Guide
 
-I wrote a detailed installation guide for windows complete with screenshots of all the steps, so do not worry if you are a python beginer and have no idea what I'm talking about here. You can access the guide on github ![here]() or download a ![PDF](/documentation/Installing%20ORPL%20-%20Windows.pdf) version.
+I wrote a detailed installation guide for windows complete with screenshots of all the steps, so do not worry if you are a python beginer and have no idea what I'm talking about here. You can access the guide on github ![here](/documentation/Installation%20guide%20-%20Windows.md) or download a ![PDF](/documentation/Installing%20ORPL%20-%20Windows.pdf) version.
 
 ### Already familiar with python and pip?
 
@@ -55,42 +55,7 @@ Using Anaconda?... dont... Jokes aside, if people ask me about this, I might wri
 
 ### I'm new to python and this 'pip' thing?
 
-First, if you are using windows, please make sure you installed the _Microsoft Visual C++ Redistributable_ as mentioned in the [Windows requirements](#windows-requirements) section. You can install it after python if you want, so it's no problem if you forget ;)
-
-I made a video going through everything on a clean **Windows 11** [VM](https://en.wikipedia.org/wiki/Virtual_machine), the same steps should work as well for **Windows 10**. Here is the video so you can follow step-by-step. PLEASE, make certain you follow the steps EXACTLY for the python installation. Otherwise, you'll get a bunch of error in your terminal and might get lost.
-
-https://user-images.githubusercontent.com/27356351/225757919-e89d59c2-ff3f-4555-bffc-16b11ef3ecde.mp4
-
-The steps for **Windows** are:
-
-1. Check if python is already installed
-   1. Open a terminal
-   2. run `python`
-      - If you get something like `Python 3.X.X (tag)... Type "help", "copyright", ...`, then you already have a python version installed. Check if it is compatible with ORPL. If so, move to Step 2.7
-      - If a Microsoft Store window opens, or you get a message along the line of `... is not recognized as an internal or external command...`, then python is not installed. Proceed with Step 2.1
-2. Install python (I test with [python 3.8.10](https://www.python.org/downloads/release/python-3810/), but other versions might work perfectly fine)
-   1. **DO NOT!!!** use "Install Now" or default setting, it almost certainly won't work, and you'll have to start over again.
-   2. Make sure you check all boxes on the first page.
-   3. Use "Customize installation".
-   4. Make sure you check EVERYTHING, I mean ALL checkboxes as you keep going through the pages.
-   5. Once the installation is finished, you'll see a last page with "Setup was successful" if it worked. You might see a `Disable path length limit...` option. If so, click it and accept.
-   6. Check if **Python** was correctly installed by running `python` in a terminal (see Step 2.2)
-   7. Check if **pip** was installed and added to your Path by running `pip` in a new terminal.
-      - If you see a long stream of text starting with `Usage: pip <command> [options]`, then you are good!
-      - Otherwise, something went wrong...
-3. Install orplib (https://pypi.org/project/orplib/) with pip
-   1. Run pip command for installation:
-      - If your user has admin rights, run `pip install orplib` in terminal
-      - Otherwise, run `pip install orplib --user` in terminal
-   2. Check that ORPL installed correctly by running `python -m orpl` in terminal.
-      - If you get an error message, something went wrong...
-      - Otherwise, it will take a few seconds the first time you launch it. Please, be patient.
-4. (optional) create a script file to launch ORPL - GUI
-   1. Create a new text file on the Desktop (I suggest calling it `orpl GUI.txt`)
-   2. Open the text file with notepad
-   3. Write the content below inside that file
-   4. Save the file and close it
-   5. Change the extension name of the file to `.bat`
+I am working on a python tutorial repository, you can learn more about it ![here](https://github.com/mr-sheg/Python-Tutorials).
 
 ##### Content of the `orpl GUI.txt` file
 
