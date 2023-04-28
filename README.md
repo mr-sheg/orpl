@@ -19,7 +19,6 @@ As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
     - [Windows Installation Guide](#windows-installation-guide)
     - [Already familiar with python and pip?](#already-familiar-with-python-and-pip)
     - [I'm new to python and this 'pip' thing?](#im-new-to-python-and-this-pip-thing)
-      - [Content of the `orpl GUI.txt` file](#content-of-the-orpl-guitxt-file)
     - [Updating ORPL to the latest version](#updating-orpl-to-the-latest-version)
       - [If you have admin rights](#if-you-have-admin-rights)
       - [If you do not have admin rights](#if-you-do-not-have-admin-rights)
@@ -56,13 +55,6 @@ Using Anaconda?... dont... Jokes aside, if people ask me about this, I might wri
 ### I'm new to python and this 'pip' thing?
 
 I am working on a python tutorial repository, you can learn more about it ![here](https://github.com/mr-sheg/Python-Tutorials).
-
-##### Content of the `orpl GUI.txt` file
-
-```
-python -m orpl
-pause
-```
 
 ### Updating ORPL to the latest version
 
