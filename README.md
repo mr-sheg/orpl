@@ -23,6 +23,7 @@ As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
       - [If you have admin rights](#if-you-have-admin-rights)
       - [If you do not have admin rights](#if-you-do-not-have-admin-rights)
     - [Building from source](#building-from-source)
+  - [Sample files](#sample-files)
   - [Baseline removal](#baseline-removal)
     - [BubbleFill](#bubblefill)
   - [How to cite this work](#how-to-cite-this-work)
@@ -85,6 +86,10 @@ and to update the build on pypi (this is a reminder for me, it won't do anything
 ```
 python -m twine upload --repository pypi --skip-existing dist/*
 ```
+
+## Sample files
+
+You can download sample files to play around with ORPL - GUI or the library. They are located [here](./sample%20data/samples.zip)
 
 ## Baseline removal
 
