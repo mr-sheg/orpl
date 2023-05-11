@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.4] - 2023-05-11
 
+### Added
+
+- Sample files to test ORPL GUI
+
 ### Bugfix
 
 - Fixed a bug when loading .sif files that had non-utf8 encoding
