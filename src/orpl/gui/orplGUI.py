@@ -433,6 +433,18 @@ class main_window(Ui_mainWindow, QMainWindow):
 
     def processing_changed(self):
         logger.info("Processing update - %s - changed", self.sender().objectName())
+
+        br_method = self.comboBoxBRAlgorithm.currentText()
+        self.spinBoxPolyOrder.setEnabled(False)
+        self.spinBoxHWS.setEnabled(False)
+        self.spinBoxBubbleWidth.setEnabled(False)
+        if br_method == "IModPoly":
+            self.spinBoxPolyOrder.setEnabled(True)
+        elif br_method == "MorphBR":
+            self.spinBoxHWS.setEnabled(True)
+        elif br_method == "BubbleFill":
+            self.spinBoxBubbleWidth.setEnabled(True)
+
         if self.checkBoxAutoUpdate.isChecked():
             self.process_spectra()
 
