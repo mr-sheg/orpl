@@ -89,7 +89,7 @@ python -m twine upload --repository pypi --skip-existing dist/*
 
 ## Sample files
 
-You can download sample files to play around with ORPL - GUI or the library. They are located [here](./sample%20data/samples.zip)
+You can download sample files to play around with ORPL - GUI or the library. They are located [here](https://github.com/mr-sheg/orpl/raw/main/sample%20data/ORPL%20sample%20data.zip)
 
 ## Baseline removal
 
