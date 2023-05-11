@@ -33,7 +33,9 @@ def load_file(file_name: str) -> Spectrum:
 
 def load_sif(sif_file: Path) -> Spectrum:
     data_array, meta_dict = sif_parser.np_open(sif_file)
-    data_array = np.squeeze(data_array)
+    data_array = np.squeeze(data_array).T
+    if data_array.ndim > 1:
+        data_array = np.flip(data_array, axis=0)
 
     # cleaning up string metadata
     for k, v in meta_dict.items():
