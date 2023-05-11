@@ -38,7 +38,7 @@ def load_sif(sif_file: Path) -> Spectrum:
     # cleaning up string metadata
     for k, v in meta_dict.items():
         if isinstance(v, bytes):
-            meta_dict[k] = v.decode()
+            meta_dict[k] = v.decode(encoding="utf8", errors="replace")
         if isinstance(v, str):
             meta_dict[k] = v.strip()
 
