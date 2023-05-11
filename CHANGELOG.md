@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Bugfix
 
 - Fixed a bug when loading .sif files that had non-utf8 encoding
+- Fixed dimensionality when loading .sif images
 
 ## [1.0.3] - 2023-03-16
 
