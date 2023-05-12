@@ -1,6 +1,7 @@
 import logging
 import sys
 import traceback
+from importlib.metadata import version
 from pathlib import Path
 from time import strftime
 from typing import List, Tuple
@@ -20,7 +21,7 @@ from PyQt5.QtWidgets import (
 )
 from ruamel import yaml
 
-from orpl import ORPL_VERSION, file_io
+from orpl import file_io
 from orpl.baseline_removal import bubblefill, imodpoly, morph_br
 from orpl.calibration import autogenx, compute_irf
 from orpl.cosmic_ray import crfilter_multi, crfilter_single
@@ -29,6 +30,8 @@ from orpl.file_io import RDF
 from orpl.gui.mplcanvas import PlotWidget
 from orpl.gui.uis.ui_mainWindow import Ui_mainWindow
 from orpl.normalization import auc, maxband, minmax, snv
+
+ORPL_VERSION = version("orplib")
 
 # Set-up home directory for ORPL
 HOME_DIR = Path.home()

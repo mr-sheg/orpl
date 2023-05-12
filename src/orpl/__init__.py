@@ -16,5 +16,3 @@ from orpl import (
     plot,
     synthetic,
 )
-
-ORPL_VERSION = "1.0.3"
