@@ -6,7 +6,15 @@ from numpy import ndarray
 
 
 @dataclass(frozen=True)
-class Metadata:
+class Acquisition_info:
+    exposure_time: float  # [ms]
+    n_accumulations: int
+    laser_power: float
+    power_units: str
+
+
+@dataclass(frozen=True)
+class Rdf_metadata:
     # timestamp: int  # epoch [s]
     filepath: Type[Path]
     exposure_time: float  # [ms]
@@ -17,7 +25,7 @@ class Metadata:
 
 @dataclass(frozen=True)
 class Spectrum:
-    metadata: Metadata
+    metadata: Rdf_metadata
     accumulations: ndarray
     background: ndarray
     nbins: int = field(init=False)
