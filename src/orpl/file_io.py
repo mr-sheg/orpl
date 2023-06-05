@@ -3,17 +3,19 @@ file_io modules provide file handling capabilities for the ORPL GUI.
 """
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Type
 
 import numpy as np
+import pandas as pd
 import sif_parser
 from renishawWiRE import WDFReader
 from ruamel import yaml
 
-from orpl.datatypes import Metadata, Spectrum
+from orpl.datatypes import Acquisition_info, Rdf_metadata, Spectrum
 
-SUPPORTED_EXTENSIONS = [".sif", ".json", ".wdf"]
+SUPPORTED_EXTENSIONS = [".sif", ".json", ".wdf", ".sdf"]
 
 
 def is_file_supported(file_path: Path) -> bool:
@@ -25,7 +27,12 @@ def load_file(file_name: str) -> Spectrum:
     if not is_file_supported(file_path):
         raise TypeError(f"{file_path} is not supported as a spectrum file.")
 
-    load_function = {".sif": load_sif, ".json": load_json, ".wdf": load_wdf}
+    load_function = {
+        ".sif": load_sif,
+        ".json": load_json,
+        ".wdf": load_wdf,
+        ".sdf": load_sdf,
+    }
     spectrum = load_function[file_path.suffix](file_path)
 
     return spectrum
@@ -44,7 +51,7 @@ def load_sif(sif_file: Path) -> Spectrum:
         if isinstance(v, str):
             meta_dict[k] = v.strip()
 
-    metadata = Metadata(
+    metadata = Rdf_metadata(
         filepath=sif_file,
         source_power=None,
         exposure_time=meta_dict["CycleTime"],
@@ -56,7 +63,7 @@ def load_sif(sif_file: Path) -> Spectrum:
     return spectrum
 
 
-def load_json(json_file: Path, dump_meta_spectra=True) -> Spectrum:
+def load_json(json_file: Path) -> Spectrum:
     with open(json_file, encoding="utf8") as f:
         json_data = json.load(f)
 
@@ -77,7 +84,7 @@ def load_json(json_file: Path, dump_meta_spectra=True) -> Spectrum:
         if k not in ["RawSpectra", "Background", "aec", "asnr"]
     }
 
-    metadata = Metadata(
+    metadata = Rdf_metadata(
         filepath=json_file,
         comment=json_data["Comment"],
         exposure_time=json_data["ExpTime"],
@@ -157,7 +164,7 @@ def load_wdf(wdf_path: Path):
         "ylist_unit": str(wdf.ylist_unit),
     }
 
-    metadata = Metadata(
+    metadata = Rdf_metadata(
         filepath=wdf_path,
         comment=wdf.title,
         exposure_time=None,
@@ -168,32 +175,127 @@ def load_wdf(wdf_path: Path):
     return spectrum
 
 
-class SDF:
-    pass
+def load_sdf(sdf_file: Path) -> Spectrum:
+    sdf = SDF()
+    sdf.load(sdf_file)
+
+    # Unpacking data
+    accumulations = sdf.accumulations
+    background = sdf.background
+    metadata = Rdf_metadata(
+        filepath=sdf_file,
+        exposure_time=sdf.acquisition_info.exposure_time,
+        source_power=sdf.acquisition_info.exposure_time,
+        details=sdf.get_metadata_dict(),
+        comment=sdf.comment,
+    )
+
+    spectrum = Spectrum(
+        accumulations=accumulations, background=background, metadata=metadata
+    )
+    return spectrum
 
 
 class RDF:
-    metadata: Type[Metadata]
+    metadata: Type[Rdf_metadata]
     xaxis: Type[np.ndarray]
     raman: Type[np.ndarray]
     baseline: Type[np.ndarray]
 
-    def get_metadata_block(self) -> str:
+    def get_metadata_string(self) -> str:
         return "###\n" + yaml.dump(self.metadata, Dumper=yaml.RoundTripDumper) + "###\n"
 
-    def get_data_block(self) -> str:
-        data_array = np.stack((self.xaxis, self.baseline, self.raman), axis=1)
+    def get_data_string(self) -> str:
+        data_array = np.column_stack((self.xaxis, self.baseline, self.raman))
         data_str = ""
         for line in data_array:
             data_str += ",".join(map(str, line)) + "\n"
         return data_str
 
-    def get_column_block(self) -> str:
+    def get_column_string(self) -> str:
         return "xaxis,baseline,raman\n"
 
     def save(self, filepath: str) -> None:
         blocks = (
-            self.get_metadata_block(),
+            self.get_metadata_string(),
+            self.get_column_string(),
+            self.get_data_string(),
+        )
+        with open(filepath, "w", encoding="utf8") as file:
+            for block in blocks:
+                file.write(block)
+
+
+class SDF:
+    # Data attributes
+    xaxis: np.ndarray = None
+    background: np.ndarray = None
+    accumulations: np.ndarray = None
+    # Metadata attributes
+    epoch: float = None
+    comment: str = ""
+    oras_version: str = None
+    camera_info: dict = None
+    laser_info: dict = None
+    acquisition_info: Acquisition_info = None
+
+    def __data_attrs__(self) -> list:
+        data_attrs = ["xaxis", "background", "accumulations"]
+        return data_attrs
+
+    def __meta_attrs__(self) -> list:
+        meta_attrs = [
+            key
+            for key in self.__annotations__.keys()
+            if key not in self.__data_attrs__()
+        ]
+        return meta_attrs
+
+    def __repr__(self) -> str:
+        return self.get_metadata_string()
+
+    def get_metadata_dict(self) -> dict:
+        metadata_dict = {
+            "oras_version": self.oras_version,
+            "epoch": self.epoch,
+            "comment": self.comment,
+            "acquisition_info": asdict(self.acquisition_info),
+            "laser_info": self.laser_info,
+            "camera_info": self.camera_info,
+        }
+        return metadata_dict
+
+    def get_metadata_string(self) -> str:
+
+        metadata_block = (
+            "###\n"
+            + yaml.dump(self.get_metadata_dict(), Dumper=yaml.RoundTripDumper)
+            + "###\n"
+        )
+
+        return metadata_block
+
+    def get_column_block(self) -> str:
+        column_str = "xaxis,background"
+        if self.accumulations.ndim > 1:
+            n_accumulations = self.accumulations.shape[1]
+        else:
+            n_accumulations = 1
+        for i in range(n_accumulations):
+            column_str += f",accumulation_{i}"
+        column_str += "\n"
+        return column_str
+
+    def get_data_block(self) -> str:
+        data_array = np.column_stack((self.xaxis, self.background, self.accumulations))
+        data_str = ""
+        for line in data_array:
+            data_str += ",".join(map(str, line)) + "\n"
+        return data_str
+
+    def save(self, filepath: str):
+        blocks = (
+            self.get_metadata_string(),
             self.get_column_block(),
             self.get_data_block(),
         )
@@ -201,9 +303,45 @@ class RDF:
             for block in blocks:
                 file.write(block)
 
+    def load(self, filepath: str) -> pd.DataFrame:
+        with open(filepath, encoding="utf8") as file:
+            filecontent = file.readlines()
+
+        file_str = "".join(filecontent)
+
+        # Metadata
+        metadata_str = file_str.split("###")[1].strip()
+        metadata_dict = yaml.load(metadata_str, Loader=yaml.RoundTripLoader)
+        for k, v in metadata_dict.items():
+            if k == "acquisition_info":
+                self.acquisition_info = Acquisition_info(
+                    exposure_time=v["exposure_time"],
+                    n_accumulations=v["n_accumulations"],
+                    laser_power=v["laser_power"],
+                    power_units=v["power_units"],
+                )
+            else:
+                setattr(self, k, v)
+
+        # Data
+        data_str = "\n".join(file_str.split("###")[2].split()[1:])
+        data_block = np.array(
+            [[float(j) for j in i.split(",")] for i in data_str.splitlines()]
+        )
+        self.xaxis = data_block[:, 0]
+        self.background = data_block[:, 1]
+        self.accumulations = data_block[:, 2:]
+
+    def to_pandas(self) -> pd.Series:
+        data = {
+            k: self.__dict__[k] for k in self.__meta_attrs__() + self.__data_attrs__()
+        }
+
+        return pd.Series(data)
+
 
 if __name__ == "__main__":
-    wdf_file = Path().home() / "Desktop/orpl_testing/nylon_objx5_0.wdf"
-    s = load_file(wdf_file)
+    sdf_file = Path().home() / "oras/2023_05_26_10_28/acquisition/acquisition_0.sdf"
+    s = load_file(sdf_file)
 
-    print(yaml.dump(s.metadata.details, Dumper=yaml.RoundTripDumper))
+    print(s)
