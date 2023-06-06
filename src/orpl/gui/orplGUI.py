@@ -404,9 +404,11 @@ class main_window(Ui_mainWindow, QMainWindow):
         if self.irf is not None:
             if self.xaxis is None:
                 ax.plot(self.irf)
+                ax.set_xlabel(r"Camera pixel [au]")
             else:
                 ax.plot(self.xaxis, self.irf)
-        ax.set_xlabel("Camera pixel [au]")
+                ax.set_xlabel(r"Raman Shift [cm$^{-1}$]")
+
         ax.set_ylabel("Intensity [counts]")
         ax.figure.tight_layout()
         ax.figure.canvas.draw()
@@ -596,7 +598,7 @@ class main_window(Ui_mainWindow, QMainWindow):
                 ax.set_xlabel(r"Raman shift [cm$^{-1}$]")
             else:
                 ax.plot(raman)
-                ax.set_xlabel("Camera pixel")
+                ax.set_xlabel(r"Camera pixel")
 
         if self.radioButtonNoNorm.isChecked():
             ax.set_ylabel("Intensity [counts]")

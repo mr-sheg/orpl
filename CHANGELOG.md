@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Naming convention : replaced word "Select" with "Load"
 
+### Fixed
+
+- Fixed xaxis label in IRF plot when an xaxis is loaded
+
 ## [1.0.5] - 2023-06-05
 
 ### Added
