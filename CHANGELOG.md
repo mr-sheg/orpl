@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Naming convention : replaced word "Select" with "Load"
+- Uniformized spectra load : now "accumulations" are always 2d Array even for a single accumulation.
 
 ### Fixed
 
