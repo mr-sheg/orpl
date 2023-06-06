@@ -177,12 +177,12 @@ class main_window(Ui_mainWindow, QMainWindow):
     def connectSlots(self):
         # File IO tab
         self.buttonSelectDirectory.clicked.connect(self.select_working_directory)
-        self.buttonSelectSpectra.clicked.connect(self.select_data)
+        self.buttonLoadSpectra.clicked.connect(self.load_spectra)
         self.treeViewFiles.selectionModel().selectionChanged.connect(
             self.selected_file_changed
         )
-        self.buttonSelectXref.clicked.connect(self.select_xref)
-        self.buttonSelectYref.clicked.connect(self.select_yref)
+        self.buttonLoadXref.clicked.connect(self.load_xref)
+        self.buttonLoadYref.clicked.connect(self.load_yref)
         self.buttonDropSpectra.clicked.connect(self.drop_data)
         self.buttonDropXref.clicked.connect(self.drop_xref)
         self.buttonDropYref.clicked.connect(self.drop_yref)
@@ -264,7 +264,7 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         logger.info("Changed data directory - %s", new_dir)
 
-    def select_data(self):
+    def load_spectra(self):
         # Load selected data
         self.raw_spectra = []
         for file in self.get_selected_files():
@@ -292,7 +292,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.plot_loaded_data()
         self.plot_raw_spectra()
 
-    def select_xref(self):
+    def load_xref(self):
         selected_file = self.get_selected_files()
 
         if len(selected_file) == 0:
@@ -320,7 +320,7 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         self.plot_xref(xref)
 
-    def select_yref(self):
+    def load_yref(self):
         selected_file = self.get_selected_files()
 
         if len(selected_file) == 0:

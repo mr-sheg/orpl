@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>921</width>
-    <height>715</height>
+    <width>881</width>
+    <height>663</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -123,7 +123,7 @@
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_14">
               <item>
-               <widget class="QPushButton" name="buttonSelectSpectra">
+               <widget class="QPushButton" name="buttonLoadSpectra">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -131,7 +131,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Select Spectra</string>
+                 <string>Load Spectra</string>
                 </property>
                </widget>
               </item>
@@ -163,7 +163,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_10">
                 <item>
-                 <widget class="QPushButton" name="buttonSelectXref">
+                 <widget class="QPushButton" name="buttonLoadXref">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -171,7 +171,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Select X-reference</string>
+                   <string>Load X-reference</string>
                   </property>
                  </widget>
                 </item>
@@ -216,7 +216,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <item>
-                 <widget class="QPushButton" name="buttonSelectYref">
+                 <widget class="QPushButton" name="buttonLoadYref">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -224,7 +224,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Select Y-reference</string>
+                   <string>Load Y-reference</string>
                   </property>
                  </widget>
                 </item>
@@ -293,8 +293,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>122</width>
-                 <height>342</height>
+                 <width>116</width>
+                 <height>290</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -439,7 +439,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>226</width>
-                 <height>335</height>
+                 <height>258</height>
                 </rect>
                </property>
                <attribute name="label">
