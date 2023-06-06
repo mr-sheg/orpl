@@ -277,6 +277,8 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         if not self.raw_spectra:
             return
+        else:
+            print(self.raw_spectra[0].accumulations.shape)
 
         # Update processing controls
         spectrum_length = self.raw_spectra[0].nbins
@@ -524,7 +526,7 @@ class main_window(Ui_mainWindow, QMainWindow):
                 spectrum_ = spectrum_ - background_
 
         # Combining accumulations
-        if spectrum.naccumulations > 1:
+        if spectrum_.ndim > 1:
             spectrum_ = spectrum_.mean(axis=1)
 
         # IRF correction

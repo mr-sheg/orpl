@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed xaxis label in IRF plot when an xaxis is loaded
+- Fixed processing Bug with .sdf
 
 ## [1.0.5] - 2023-06-05
 
