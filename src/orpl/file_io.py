@@ -15,27 +15,7 @@ from ruamel import yaml
 
 from orpl.datatypes import Acquisition_info, Rdf_metadata, Spectrum
 
-SUPPORTED_EXTENSIONS = [".sif", ".json", ".wdf", ".sdf"]
-
-
-def is_file_supported(file_path: Path) -> bool:
-    return file_path.suffix in SUPPORTED_EXTENSIONS
-
-
-def load_file(file_name: str) -> Spectrum:
-    file_path = Path(file_name)
-    if not is_file_supported(file_path):
-        raise TypeError(f"{file_path} is not supported as a spectrum file.")
-
-    load_function = {
-        ".sif": load_sif,
-        ".json": load_json,
-        ".wdf": load_wdf,
-        ".sdf": load_sdf,
-    }
-    spectrum = load_function[file_path.suffix](file_path)
-
-    return spectrum
+## File specific load functions
 
 
 def load_sif(sif_file: Path) -> Spectrum:
@@ -58,7 +38,7 @@ def load_sif(sif_file: Path) -> Spectrum:
         details=dict(meta_dict),
         comment="",
     )
-    spectrum = Spectrum(accumulations=data_array, metadata=metadata, background=None)
+    spectrum = Spectrum(accumulations=data_array, background=None, metadata=metadata)
 
     return spectrum
 
@@ -193,6 +173,49 @@ def load_sdf(sdf_file: Path) -> Spectrum:
     spectrum = Spectrum(
         accumulations=accumulations, background=background, metadata=metadata
     )
+    return spectrum
+
+
+def load_txt(txt_file: Path) -> Spectrum:
+    data = np.genfromtxt(txt_file, delimiter=",", skip_header=1)
+    xaxis = data[:, 0]
+    background = data[:, 1]
+    accumulations = data[:, 2:]
+    metadata = Rdf_metadata(
+        filepath=txt_file,
+        exposure_time=np.nan,
+        source_power=np.nan,
+        details={},
+        comment="",
+    )
+    spectrum = Spectrum(
+        accumulations=accumulations, background=background, metadata=metadata
+    )
+
+    return spectrum
+
+
+LOAD_FUNCTIONS = {
+    ".sif": load_sif,
+    ".json": load_json,
+    ".wdf": load_wdf,
+    ".sdf": load_sdf,
+    ".csv": load_txt,
+    ".txt": load_txt,
+}
+
+
+def is_file_supported(file_path: Path) -> bool:
+    return file_path.suffix in LOAD_FUNCTIONS.keys()
+
+
+def load_file(file_name: str) -> Spectrum:
+    file_path = Path(file_name)
+    if not is_file_supported(file_path):
+        raise TypeError(f"{file_path} is not supported as a spectrum file.")
+
+    spectrum = LOAD_FUNCTIONS[file_path.suffix](file_path)
+
     return spectrum
 
 
@@ -341,7 +364,8 @@ class SDF:
 
 
 if __name__ == "__main__":
-    sdf_file = Path().home() / "oras/2023_05_26_10_28/acquisition/acquisition_0.sdf"
-    s = load_file(sdf_file)
+    file2load = Path().cwd() / "sample data/Generic/collagen.csv"
+    print(file2load)
 
+    s = load_file(file2load)
     print(s)
