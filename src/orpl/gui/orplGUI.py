@@ -100,6 +100,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         super().__init__()
 
         # Internal references
+        self.working_directory = Path().cwd()
         self.raw_spectra: List[np.ndarray] = []
         self.baseline_spectra: List[np.ndarray] = []
         self.irf_corrections: List[np.ndarray] = []
@@ -139,8 +140,10 @@ class main_window(Ui_mainWindow, QMainWindow):
         # File IO tab
         self.file_system_model.setRootPath("/")
         self.treeViewFiles.setModel(self.file_system_model)
-        self.treeViewFiles.setRootIndex(self.file_system_model.index(str(HOME_DIR)))
-        self.textEditDataDir.setText(str(HOME_DIR))
+        self.treeViewFiles.setRootIndex(
+            self.file_system_model.index(str(self.working_directory))
+        )
+        self.textEditDataDir.setText(str(self.working_directory))
 
         pixmapi = getattr(QStyle, "SP_TrashIcon")
         trash_icon = self.style().standardIcon(pixmapi)
@@ -158,7 +161,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         self.spinBoxHWS.setValue(100)
         self.spinBoxBubbleWidth.setMaximum(1024)
         self.spinBoxBubbleWidth.setValue(200)
-        self.textEditExportDir.setText(str(HOME_DIR))
+        self.textEditExportDir.setText(str(self.working_directory))
 
         # Log
         self.labelLogPath.setText(str(LOG_PATH))
@@ -258,6 +261,7 @@ class main_window(Ui_mainWindow, QMainWindow):
         )
 
         if new_dir:
+            self.working_directory = Path(new_dir)
             self.treeViewFiles.setRootIndex(self.file_system_model.index(new_dir))
             self.textEditDataDir.setText(new_dir)
             self.textEditExportDir.setText(new_dir)
