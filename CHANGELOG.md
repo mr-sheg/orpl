@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2023-06-21
+
+### Added
+
+- File compatibility with .txt and .csv. See example files in `ORPL sample data.zip` for examples of the structure to follow.
+
+### Changed
+
+- ORPL's starting working directory is not the specific terminal directory where it's launched from (`python -m orpl`).
+
 ## [1.0.6] - 2023-06-06
 
 ### Changed
