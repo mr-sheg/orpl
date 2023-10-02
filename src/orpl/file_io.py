@@ -123,7 +123,6 @@ def split_json(json_file: Path, new_dir: str = None):
 
 
 def load_wdf(wdf_path: Path):
-
     wdf = WDFReader(wdf_path)
 
     accumulations = np.flip(wdf.spectra)
@@ -176,18 +175,48 @@ def load_sdf(sdf_file: Path) -> Spectrum:
     return spectrum
 
 
+def check_header_valid(header_keys: list):
+    # Checks that all keys are valid
+    valid_keys = ["xaxis", "background"]
+    for key in header_keys:
+        if key in valid_keys:
+            pass
+        elif key.startswith("accumulation_"):
+            pass
+        else:
+            raise KeyError(f"Key '{key}' is not a valid header key.")
+
+    # Checks that all required keys are present
+    required_keys = ["background", "accumulation_"]
+    for required_key in required_keys:
+        if not any(header_key.startswith(required_key) for header_key in header_keys):
+            raise KeyError(f"Key '{required_key}' is missing from header.")
+
+
 def load_txt(txt_file: Path) -> Spectrum:
-    data = np.genfromtxt(txt_file, delimiter=",", skip_header=1)
-    xaxis = data[:, 0]
-    background = data[:, 1]
-    accumulations = data[:, 2:]
+    data = pd.read_csv(txt_file)
+
+    # Checking header validity
+    check_header_valid(data.keys())
+
+    # Loading data from file with pandas
+    xaxis = data["xaxis"].to_numpy()
+    background = data["background"].to_numpy()
+    background[np.isnan(background)] = 0
+    accumulations = data[
+        [key for key in data.keys() if key.startswith("accumulation_")]
+    ].to_numpy()
+
+    # Loading metadata from file
     metadata = Rdf_metadata(
         filepath=txt_file,
-        exposure_time=np.nan,
-        source_power=np.nan,
+        exposure_time=None,
+        source_power=None,
         details={},
-        comment="",
+        comment=None,
     )
+
+    # Building spectrum object
     spectrum = Spectrum(
         accumulations=accumulations, background=background, metadata=metadata
     )
@@ -289,7 +318,6 @@ class SDF:
         return metadata_dict
 
     def get_metadata_string(self) -> str:
-
         metadata_block = (
             "###\n"
             + yaml.dump(self.get_metadata_dict(), Dumper=yaml.RoundTripDumper)
@@ -364,8 +392,10 @@ class SDF:
 
 
 if __name__ == "__main__":
-    file2load = Path().cwd() / "sample data/Generic/collagen.csv"
+    file2load = Path().cwd() / "sample data/Generic txt files/collagen.csv"
+    # file2load = Path().cwd() / "sample data/neon_averaged_01.csv"
+    file2load = Path().cwd() / "neon_averaged_01.csv"
     print(file2load)
 
     s = load_file(file2load)
-    print(s)
+    print(s.accumulations)
