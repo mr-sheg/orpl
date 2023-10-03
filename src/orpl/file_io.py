@@ -175,6 +175,14 @@ def load_sdf(sdf_file: Path) -> Spectrum:
     return spectrum
 
 
+class HeaderError(Exception):
+    """Custom error raised when .csv and .txt files dont have the correct header format"""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
+
+
 def check_header_valid(header_keys: list):
     # Checks that all keys are valid
     valid_keys = ["xaxis", "background"]
@@ -183,14 +191,14 @@ def check_header_valid(header_keys: list):
             pass
         elif key.startswith("accumulation_"):
             pass
+        elif key.startswith("Unnamed"):
+            pass
         else:
-            raise KeyError(f"Key '{key}' is not a valid header key.")
+            raise HeaderError(f"Key '{key}' is not a valid header key.")
 
-    # Checks that all required keys are present
-    required_keys = ["background", "accumulation_"]
-    for required_key in required_keys:
-        if not any(header_key.startswith(required_key) for header_key in header_keys):
-            raise KeyError(f"Key '{required_key}' is missing from header.")
+    # Checks that at least 1 accumulation is present in the file
+    if not any(header_key.startswith("accumulation_") for header_key in header_keys):
+        raise HeaderError(f"No 'accumulation_X' were found in header.")
 
 
 def load_txt(txt_file: Path) -> Spectrum:
@@ -200,9 +208,10 @@ def load_txt(txt_file: Path) -> Spectrum:
     check_header_valid(data.keys())
 
     # Loading data from file with pandas
-    xaxis = data["xaxis"].to_numpy()
-    background = data["background"].to_numpy()
-    background[np.isnan(background)] = 0
+    if "background" in data.keys():
+        background = data["background"].to_numpy()
+    else:
+        background = None
     accumulations = data[
         [key for key in data.keys() if key.startswith("accumulation_")]
     ].to_numpy()
@@ -395,7 +404,7 @@ if __name__ == "__main__":
     file2load = Path().cwd() / "sample data/Generic txt files/collagen.csv"
     # file2load = Path().cwd() / "sample data/neon_averaged_01.csv"
     file2load = Path().cwd() / "neon_averaged_01.csv"
-    print(file2load)
+    print(pd.read_csv(file2load))
 
     s = load_file(file2load)
     print(s.accumulations)
