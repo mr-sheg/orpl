@@ -5,6 +5,7 @@ System Response Correction
 Provides Raman spectrum instrument/system response correction tools and xaxis calibration.
 """
 import itertools
+
 import numpy as np
 from scipy.signal import find_peaks
 
@@ -63,6 +64,39 @@ def icm2nm(icm: float, nm0: float = 785) -> float:
 
 
 # Xaxis tools
+def truncate(signal: np.ndarray, start: int = None, stop: int = None) -> np.ndarray:
+    """
+    truncate the input signal between start and stop points
+
+    Parameters
+    ----------
+    signal : np.ndarray
+        an input signal, can be a vector or an array. If array, make sure spectra are aligned
+        vertically in the array.
+    start : int, optional
+        start point of the truncation, by default 0
+    stop : int, optional
+        stop point of the truncation, by default signal.shape[0]
+
+    Returns
+    -------
+    np.ndarray
+        the truncated signal
+    """
+
+    # Defaults
+    if start is None:
+        start = 0
+    if stop is None:
+        stop = signal.shape[0]
+
+    # Truncate
+    if signal.ndim > 1:
+        signal = signal[start:stop, :]
+    else:
+        signal = signal[start:stop]
+
+    return signal
 
 
 def find_npeaks(
@@ -103,7 +137,6 @@ def find_npeaks(
 
     npeakfound = 0
     while npeakfound is not ntarget:
-
         if metric == "prominence":
             peak_locations, _ = find_peaks(spectrum_, prominence=threshold)
         elif metric == "height":

@@ -353,7 +353,7 @@ class SDF:
             data_str += ",".join(map(str, line)) + "\n"
         return data_str
 
-    def save(self, filepath: str):
+    def save(self, filepath: str) -> None:
         blocks = (
             self.get_metadata_string(),
             self.get_column_block(),
@@ -363,7 +363,7 @@ class SDF:
             for block in blocks:
                 file.write(block)
 
-    def load(self, filepath: str) -> pd.DataFrame:
+    def load(self, filepath: str) -> None:
         with open(filepath, encoding="utf8") as file:
             filecontent = file.readlines()
 
