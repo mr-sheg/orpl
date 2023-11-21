@@ -281,8 +281,6 @@ class main_window(Ui_mainWindow, QMainWindow):
 
         if not self.raw_spectra:
             return
-        else:
-            print(self.raw_spectra[0].accumulations.shape)
 
         # Update processing controls
         spectrum_length = self.raw_spectra[0].nbins
@@ -494,7 +492,6 @@ class main_window(Ui_mainWindow, QMainWindow):
     def process_spectrum(
         self, spectrum: Spectrum
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-
         spectrum_ = spectrum.accumulations
         background_ = spectrum.background
 
@@ -830,5 +827,4 @@ def launch_gui():
 
 
 if __name__ == "__main__":
-
     launch_gui()

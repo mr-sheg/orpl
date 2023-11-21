@@ -7,7 +7,6 @@ Provides Raman spectrum baseline removal tools.
 from typing import Tuple
 
 import numpy as np
-
 from scipy.signal import savgol_filter
 
 
