@@ -10,9 +10,37 @@ ORPL (read _orpel_) is the Open Raman Processing Library. It provides tools for 
 
 As of v1.0.0, ORPL also provides a Graphical User Interface. See demo below ;)
 
+## News
+
+I was notified of a few compatibility problems with the use of ORPL on non-linux systems. Most of the difficulties were traced back to making numba behave with MacOS and Windows. Starting with version v1.0.10a, I removed `numba` from the required libraries list. As such, it will no longer be installed on its own along `orpl`. However, if it is installed _explicitely_ (by running `pip install numba`), it will provide a significant boost for the performance of baseline removal filters. In the future I plan to find another library to handle JIT compilation to achieve the same benefits.
+
+In addition, I was also notified of an error that a few people encountered when trying load a spectrum file in ORPL GUI. The GUI would launch fine, but would crash when trying to load a spectrum. Part of the error message is as follow,
+
+```python
+"dump()" has been removed, use
+
+yaml = YAML(typ='unsafe', pure=True)
+yaml.dump(...)
+```
+
+This error is caused by a newer version that was pushed for the [ruamel](https://pypi.org/project/ruamel.yaml/) library that I use to parse YAML. I will need to change a few things, but for now an easy fix was to limit this dependency to versions prior to 0.18. If you encountered this error, there are two ways to fix it.
+
+First, you can explicitely install ruamel with a version that does not cause this issue,
+
+```shell
+pip install "ruamel.yaml<0.18.0"
+```
+
+Or you can force an `orpl` update,
+
+```shell
+pip install --upgrade orplib
+```
+
 ## Table of content
 
 - [ORPL](#orpl)
+  - [News](#news)
   - [Table of content](#table-of-content)
   - [ORPL GUI in action](#orpl-gui-in-action)
   - [Installation](#installation)
